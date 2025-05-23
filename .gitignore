@@ -1,0 +1,48 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Terraform ###
+/terraform/dev/.terraform/
+/terraform/dev/.terraform.lock.hcl
+
+*.DS_Store*
+
+/scripts
+
+logs
+venv
+autospex-geowf-python.iml
+.env
+Metashape-2.2.1-cp37.cp38.cp39.cp310.cp311-abi3-linux_x86_64.whl
+Metashape-2.2.1-cp37.cp38.cp39.cp310.cp311-abi3-macosx_11_0_universal2.macosx_10_13_x86_64.whl
