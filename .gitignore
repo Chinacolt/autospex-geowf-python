@@ -1,48 +1,89 @@
-HELP.md
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# Cython debug symbols
+cython_debug/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# Pylint
+pylint-report.txt
+pylint-output.log
+
+# Profiling
+.prof
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# PyCharm
+.idea/
 *.iml
-*.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
+# VSCode (eğer yukarıda yoksa)
 .vscode/
 
-### Terraform ###
-/terraform/dev/.terraform/
-/terraform/dev/.terraform.lock.hcl
+# MacOS
+.DS_Store
 
-*.DS_Store*
+# Local logs
+*.log
 
-/scripts
+# Temporary files
+*.swp
+*.swo
+*.tmp
+*.bak
 
-logs
-venv
-autospex-geowf-python.iml
+# wheel build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+
+__pycache__
+
 .env
 Metashape-2.2.1-cp37.cp38.cp39.cp310.cp311-abi3-linux_x86_64.whl
 Metashape-2.2.1-cp37.cp38.cp39.cp310.cp311-abi3-macosx_11_0_universal2.macosx_10_13_x86_64.whl
+logs
