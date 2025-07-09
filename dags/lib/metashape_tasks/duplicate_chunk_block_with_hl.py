@@ -57,6 +57,10 @@ def duplicate_chunk_block_with_hl(**context):
         logger.info(f"[INFO] Removed {removed_count} 'HR' cameras/groups from duplicated chunk.")
         doc.save()
         logger.info(f"[INFO] Project saved at {project_file_path}")
+
+        payload = {
+            "chunk_label_HL": duplicated_chunk.label,
+        }
         
         logger.info(f"[{task_name}] Payload prepared for notification: {json.dumps(payload, indent=2)}")
         
@@ -64,9 +68,7 @@ def duplicate_chunk_block_with_hl(**context):
             notify_task_completion(
                 workflow_id=workflow_id,
                 task_name=task_name,
-                payload={
-                    "chunk_label_HL": duplicated_chunk.label,
-                }
+                payload=payload
             )
             logger.info(f"[{task_name}] Task completed successfully. Duplicated chunk: {duplicated_chunk.label}")
         except Exception as notify_error:

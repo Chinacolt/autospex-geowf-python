@@ -59,6 +59,10 @@ def duplicate_chunk_block_with_hr(**context):
 
         doc.save()
         logger.info(f"[INFO] Project saved after chunk duplication at {project_file_path}")
+
+        payload = {
+            "chunk_label_HR": duplicated_chunk.label,
+        }
         
         logger.info(f"[{task_name}] Payload prepared for task completion: {json.dumps(payload)}")
         
@@ -66,9 +70,7 @@ def duplicate_chunk_block_with_hr(**context):
             notify_task_completion(
                 workflow_id=workflow_id,
                 task_name=task_name,
-                payload={
-                    "chunk_label_HR": duplicated_chunk.label,
-                }
+                payload=payload
             )
             logger.info(f"[{task_name}] Task completed successfully. Duplicated chunk: {duplicated_chunk.label}")
         except Exception as notify_error:
