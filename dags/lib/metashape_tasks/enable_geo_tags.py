@@ -36,7 +36,7 @@ def enable_geo_tags(**context):
             raise FileNotFoundError(f"Project file not found at: {project_file_path}")
 
         doc = Metashape.Document()
-        doc.open(project_file_path)
+        doc.open(project_file_path, read_only=False)
         logger.info(f"[INFO] Metashape project opened from: {project_file_path}")
 
         chunk = next((c for c in doc.chunks if c.label == chunk_label), None)

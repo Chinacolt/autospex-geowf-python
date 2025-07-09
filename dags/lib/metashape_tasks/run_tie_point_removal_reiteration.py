@@ -30,16 +30,16 @@ def run_tie_point_removal_reiteration(**context):
         project_path = context["project_path"]
         project_name = context["project_name"]
         chunk_label = context["chunk_label"]
-        reprojection_error_threshold = context["reprojection_error_threshold"]
-        reconstruction_uncertainty_threshold = context["reconstruction_uncertainty_threshold"]
-        projection_accuracy_threshold = context["projection_accuracy_threshold"]
+        reprojection_error_threshold = int(context["reprojection_error_threshold"])
+        reconstruction_uncertainty_threshold = int(context["reconstruction_uncertainty_threshold"])
+        projection_accuracy_threshold = int(context["projection_accuracy_threshold"])
 
         project_file_path = os.path.join(project_path, f"{project_name}.psx")
         if not os.path.exists(project_file_path):
             raise FileNotFoundError(f"Project file not found at {project_file_path}")
 
         doc = Metashape.Document()
-        doc.open(project_file_path)
+        doc.open(project_file_path, read_only=False)
 
         chunk = next((c for c in doc.chunks if c.label == chunk_label), None)
         if not chunk:
@@ -109,6 +109,7 @@ def run_tie_point_removal_reiteration(**context):
 
         logger.info(f"Final reprojection difference: {reproj_difference}")
 
+        doc.save()
        
         payload = {
             "first_reproj": first_reproj,
