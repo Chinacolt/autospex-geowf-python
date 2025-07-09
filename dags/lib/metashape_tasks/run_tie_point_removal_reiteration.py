@@ -30,7 +30,7 @@ def run_tie_point_removal_reiteration(**context):
         project_path = context["project_path"]
         project_name = context["project_name"]
         chunk_label = context["chunk_label"]
-        reprojection_error_threshold = int(context["reprojection_error_threshold"])
+        reprojection_error_threshold = float(context["reprojection_error_threshold"])
         reconstruction_uncertainty_threshold = int(context["reconstruction_uncertainty_threshold"])
         projection_accuracy_threshold = int(context["projection_accuracy_threshold"])
 
