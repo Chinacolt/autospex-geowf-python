@@ -1,27 +1,28 @@
 import Metashape as ms
+import json
 import logging
 import os
 from common.config import inject, get_variable
+from common.helpers import notify_task_completion
 from common.utils import get_accuracy_value
-import json
-from common.helpers import notify_task_completion   
 
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
     read_params=[
-        "project_path", 
-        "project_name", 
+        "project_path",
+        "project_name",
         "nas_folder_path",
-        "run_alignment_batch_id", 
-        "key_point_limit", 
+        "run_alignment_batch_id",
+        "key_point_limit",
         "tie_point_limit",
-        "generic_preselection", 
+        "generic_preselection",
         "reference_preselection",
-        "adaptive_camera_model_fitting", 
+        "adaptive_camera_model_fitting",
         "accuracy",
-        "guided_image_matching", 
+        "guided_image_matching",
         "reset_current_alignment",
         "exclude_stationary_tie_points"
     ],
@@ -35,7 +36,10 @@ def run_alignment(**context):
         dag_run = context.get("dag_run")
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
         logger.info(f"[{task_name}] Starting run_alignment task with workflowId: {workflow_id}")
-        
+
+        nas_root_path = get_variable("nas_root_path")
+        windows_root_path = get_variable("windows_nas_root_path")
+
         # Get Params
         project_path = context["project_path"]
         project_name = context["project_name"]
@@ -95,7 +99,8 @@ def run_alignment(**context):
         client = ms.NetworkClient()
         client.connect(metashape_server_ip)
 
-        relative_path = os.path.relpath(os.path.join(project_path, f"{project_name}.psx"), root_path)
+        relative_path = os.path.join(project_path, f"{project_name}.psx").replace(nas_root_path, windows_root_path).replace(
+            "/", "\\")
         logger.info(f"[DEBUG] Relative project path for batch: {relative_path}")
 
         batch_id = client.createBatch(relative_path, [match_task.toNetworkTask(chunk), align_task.toNetworkTask(chunk)])
