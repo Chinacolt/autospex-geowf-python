@@ -27,7 +27,8 @@ def review_alignment_and_georeferencing(**context):
             param_name="review_alignment_and_georeferencing"
         )
 
-        param_val = not (response.get("review_alignment_and_georeferencing") == "False")
+        res = json.loads(response)
+        param_val = not (res.get("review_alignment_and_georeferencing") == "False")
 
         logger.info(f"[{task_name}] Attempt {attempt + 1}: review_alignment_and_georeferencing = {param_val}")
         

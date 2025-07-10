@@ -27,7 +27,8 @@ def review_tie_point_removal_result(**context):
             param_name="review_tie_point_removal_result"
         )
 
-        param_val = not (response.get("review_tie_point_removal_result") == "False")
+        res = json.loads(response)
+        param_val = not (res.get("review_tie_point_removal_result") == "False")
 
         logger.info(f"[{task_name}] Attempt {attempt + 1}: review_tie_point_removal_result = {param_val}")
         
