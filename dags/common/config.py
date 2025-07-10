@@ -179,7 +179,7 @@ def inject(workflow_conf_key: str, read_params: List[str], method: str):
 def re_inject_param(workflow_id: str, task_name: str, param_name: str) -> Any:
     token = get_keycloak_token()
     url_template = get_variable("WORKFLOW_API_URL_TEMPLATE")
-    base_url = f"{url_template}/start/{workflow_id}/task/{task_name}"
+    base_url = f"{url_template}/getParameters/{workflow_id}"
 
     headers = {
         "Authorization": f"Bearer {token}",
