@@ -21,13 +21,13 @@ def review_tie_point_removal_result(**context):
 
     attempt = 0
     while True:
-        param_value = re_inject_param(
+        response = re_inject_param(
             workflow_id=workflow_id,
             task_name=task_name,
             param_name="review_tie_point_removal_result"
         )
 
-        param_val = bool(param_value)
+        param_val = not (response.get("review_tie_point_removal_result") == "False")
 
         logger.info(f"[{task_name}] Attempt {attempt + 1}: review_tie_point_removal_result = {param_val}")
         

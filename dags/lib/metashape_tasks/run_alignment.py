@@ -46,13 +46,13 @@ def run_alignment(**context):
         root_path = context["nas_folder_path"]
         key_point_limit = int(context["key_point_limit"])
         tie_point_limit = int(context["tie_point_limit"])
-        generic_preselection = bool(context["generic_preselection"])
+        generic_preselection = not (context["generic_preselection"] == "False")
         reference_preselection = bool(context["reference_preselection"])
-        adaptive_camera_model_fitting = bool(context["adaptive_camera_model_fitting"])
+        adaptive_camera_model_fitting = not (context["adaptive_camera_model_fitting"] == "False")
         accuracy = context["accuracy"]
-        guided_image_matching = bool(context.get("guided_image_matching", False))
-        reset_current_alignment = bool(context.get("reset_current_alignment", False))
-        exclude_stationary_tie_points = bool(context.get("exclude_stationary_tie_points", False))
+        guided_image_matching = not (context.get("guided_image_matching") == "False")
+        reset_current_alignment = not (context.get("reset_current_alignment") == "False")
+        exclude_stationary_tie_points = not (context.get("exclude_stationary_tie_points") == "False")
 
         logger.info("[run_alignment] project=%s | key/tie=%s/%s | accuracy=%s",
                     project_name, key_point_limit, tie_point_limit, accuracy)
