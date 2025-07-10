@@ -17,6 +17,8 @@ from lib.metashape_tasks.duplicate_chunk_block_with_hl import duplicate_chunk_bl
 from lib.metashape_tasks.duplicate_chunk_block_with_hr import duplicate_chunk_block_with_hr
 from lib.metashape_tasks.export_camera_positions_high_level import export_camera_positions_high_level
 from lib.metashape_tasks.export_camera_positions_high_resolution import export_camera_positions_high_resolution
+from lib.metashape_tasks.reivew_alignment_and_georeferencing import review_alignment_and_georeferencing
+from lib.metashape_tasks.review_tie_point_removal_result import review_tie_point_removal_result
 from common.callbacks import task_failure_callback
 
 
@@ -65,6 +67,10 @@ with DAG(
     @task(task_id="wait_wf_run_alignment")
     def t_wait_wf_run_alignment(**context):
         return wait_wf_run_alignment(**context)
+    
+    @task(task_id="review_alignment_and_georeferencing")
+    def t_review_alignment_and_georeferencing(**context):
+        return review_alignment_and_georeferencing(**context)
 
     @task(task_id="enable_geo_tags")
     def t_enable_geo_tags(**context):
@@ -73,6 +79,10 @@ with DAG(
     @task(task_id="run_tie_point_removal_reiteration")
     def t_run_tie_point_removal_reiteration(**context):
         return run_tie_point_removal_reiteration(**context)
+    
+    @task(task_id="review_tie_point_removal_result")
+    def t_review_tie_point_removal_result(**context):
+        return review_tie_point_removal_result(**context)
 
     @task(task_id="duplicate_chunk_block_with_hl")
     def t_duplicate_chunk_block_with_hl(**context):
@@ -101,8 +111,10 @@ with DAG(
         >> t_disable_geo_tags()
         >> t_run_alignment()
         >> t_wait_wf_run_alignment()
+        >> t_review_alignment_and_georeferencing()
         >> t_enable_geo_tags()
         >> t_run_tie_point_removal_reiteration()
+        >> t_review_tie_point_removal_result()
         >> t_duplicate_chunk_block_with_hl()
         >> t_duplicate_chunk_block_with_hr()
         >> t_export_camera_positions_high_level()

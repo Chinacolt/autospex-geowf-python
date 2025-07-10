@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 @inject(
     workflow_conf_key="workflowId",
     read_params=[
-        'run_alignment_batch_id'
+        'run_alignment_batch_id',
+        "project_path",
+        "project_name"
     ],
     method="GET"
 )
@@ -20,6 +22,9 @@ def wait_wf_run_alignment(**context):
     task_instance = context.get("task_instance") or context.get("ti")
     run_alignment_batch_id = context["run_alignment_batch_id"]
     metashape_server_ip = get_variable("METASHAPE_SERVER_IP")
+
+    project_path = context.get("project_path")
+    project_name = context.get("project_name")
 
     logger.info(f"run_alignment_batch_id: {run_alignment_batch_id}")
     try:
@@ -58,7 +63,12 @@ def wait_wf_run_alignment(**context):
         error_payload = {
             "workflowId": workflow_id,
             "taskName": "run_alignment",
-            "errorMessage": str(e)
+            "errorMessage": str(e),
+            "projectInfo": {
+                "project_path": project_path,
+                "project_name": project_name
+            }
+
         }
 
         task_instance.xcom_push(key="run_alignment", value=error_payload)

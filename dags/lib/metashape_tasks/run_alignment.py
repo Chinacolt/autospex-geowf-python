@@ -130,7 +130,11 @@ def run_alignment(**context):
         error_payload = {
             "workflowId": workflow_id,
             "taskName": task_name,
-            "errorMessage": str(e)
+            "errorMessage": str(e),
+            "projectInfo": {
+                "project_path": project_path,
+                "project_name": project_name
+            }
         }
 
         task_instance.xcom_push(key=task_name, value=error_payload)

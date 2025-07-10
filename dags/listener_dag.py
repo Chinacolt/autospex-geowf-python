@@ -14,7 +14,7 @@ default_args = {
 @dag(
     dag_id="workflow_listener",
     default_args=default_args,
-    schedule_interval=None,
+    schedule_interval="* * * * *",
     catchup=False,
     start_date=days_ago(1),
     tags=["listener"],
@@ -58,6 +58,9 @@ def workflow_listener():
 
     @task(trigger_rule="all_success")
     def trigger_pipeline(conf_payload: dict, **context):
+        if not conf_payload.get("workflowId"):
+            logging.info("[Trigger Task] No workflow ID found. Skipping DAG trigger.")
+            return
         logging.info(f"[Trigger Task] Sending payload: {conf_payload}")
         trigger = TriggerDagRunOperator(
             task_id="trigger_metashape_pipeline_op",

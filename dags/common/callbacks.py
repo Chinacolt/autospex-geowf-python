@@ -3,6 +3,7 @@ import logging
 import json
 
 from common.helpers import notify_task_completion, notify_task_failure
+from common.config import save_project_on_failure
 
 
 def task_success_callback(context):
@@ -41,6 +42,18 @@ def task_failure_callback(context):
 
         if payload:
             error_message = payload.get("errorMessage")
+            project_path = payload["projectInfo"]["project_path"]
+            project_name = payload["projectInfo"]["project_name"]
+
+        
+        logging.info(f"[{task_instance.task_id}] Project path: {project_path}")
+        logging.info(f"[{task_instance.task_id}] Project name: {project_name}")
+    
+
+        save_project_on_failure(
+            project_path,
+            project_name
+        )    
 
         notify_task_failure(
             workflow_id=workflow_id,

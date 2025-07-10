@@ -7,6 +7,9 @@ from functools import wraps
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 import json
+from Metashape import Metashape as ms
+import os
+
 
 from pprint import pprint
 
@@ -31,6 +34,17 @@ def create_session() -> requests.Session:
     session.mount("https://", adapter)
     logger.info("[create_session] Session created and adapter mounted.")
     return session
+
+
+def save_project_on_failure(project_path: str, project_name: str) -> None:
+    logger.info(f"[save_project_on_failure] Attempting to save project at {project_path} with name {project_name}...")
+    try:
+        doc = ms.Document()
+        logger.error(f"[save_project_on_failure] Saving project to {project_path}...")
+        doc.save(os.path.join(project_path, f"{project_name}.psx"))
+        logger.info(f"[save_project_on_failure] Project saved successfully.")
+    except Exception as e:
+        logger.error(f"[save_project_on_failure] Failed to save project: {str(e)}")
 
 
 def get_variable(variable_name: str) -> str:
@@ -161,3 +175,25 @@ def inject(workflow_conf_key: str, read_params: List[str], method: str):
 
         return wrapper
     return decorator
+
+def re_inject_param(workflow_id: str, task_name: str, param_name: str) -> Any:
+    token = get_keycloak_token()
+    url_template = get_variable("WORKFLOW_API_URL_TEMPLATE")
+    base_url = f"{url_template}/start/{workflow_id}/task/{task_name}"
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    params = {
+        "parameters": [param_name]
+    }
+
+    logger.info(f"[{task_name}] Re-fetching {param_name} from: {base_url}")
+    response = requests.get(base_url, headers=headers, params=params)
+    response.raise_for_status()
+
+    data = response.json()
+    logger.info(f"[{task_name}] Re-injected response: {data}")
+    return data.get(param_name)
