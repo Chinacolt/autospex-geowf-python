@@ -19,6 +19,8 @@ from lib.metashape_tasks.export_camera_positions_high_level import export_camera
 from lib.metashape_tasks.export_camera_positions_high_resolution import export_camera_positions_high_resolution
 from lib.metashape_tasks.reivew_alignment_and_georeferencing import review_alignment_and_georeferencing
 from lib.metashape_tasks.review_tie_point_removal_result import review_tie_point_removal_result
+from lib.metashape_tasks.build_3d_mesh_high_resolution import build_3d_mesh_high_resolution
+from lib.metashape_tasks.build_3d_mesh_high_level import build_3d_mesh_high_level
 from common.callbacks import task_failure_callback
 
 
@@ -100,10 +102,17 @@ with DAG(
     def t_export_camera_positions_high_resolution(**context):
         return export_camera_positions_high_resolution(**context)
 
+    @task(task_id="build_3d_mesh_high_level")
+    def t_build_3d_mesh_high_level(**context):
+        return build_3d_mesh_high_level(**context)
+
+    @task(task_id="build_3d_mesh_high_resolution")
+    def t_build_3d_mesh_high_resolution(**context):
+        return build_3d_mesh_high_resolution(**context)
+
     
     
     (
-        
         t_copy_data_to_nas()
         >> t_create_metashape_project()
         >> t_create_chunk()
@@ -119,4 +128,6 @@ with DAG(
         >> t_duplicate_chunk_block_with_hr()
         >> t_export_camera_positions_high_level()
         >> t_export_camera_positions_high_resolution()
+        >> t_build_3d_mesh_high_level()
+        >> t_build_3d_mesh_high_resolution()
     )

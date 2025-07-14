@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
     read_params=[
         "project_path",
         "project_name",
-        "chunk_label_HL",
+        "chunk_label_HR",
         "project_code"
     ],
     method="GET"
 )
-def build_3d_mesh_high_level(**context):
+def build_3d_mesh_high_resolution(**context):
 
     task_instance = context.get("task_instance") or context.get("ti")
     task_name = task_instance.task_id
@@ -28,11 +28,11 @@ def build_3d_mesh_high_level(**context):
     try:
 
 
-        logger.info(f"[{task_name}] Starting build_3d_mesh_high_level task with workflowId: {workflow_id}")
-        chunk_label = context["chunk_label_HL"]
+        logger.info(f"[{task_name}] Starting build_3d_mesh_high_resolution task with workflowId: {workflow_id}")
+        chunk_label = context["chunk_label_HR"]
         project_code = context["project_code"]
 
-        logger.info(f"[INFO] Starting build 3d mesh high level for chunk '{chunk_label}'")
+        logger.info(f"[INFO] Starting build 3d mesh high resolution for chunk '{chunk_label}'")
 
         project_file_path = os.path.join(project_path, f"{project_name}.psx")
 
@@ -46,14 +46,14 @@ def build_3d_mesh_high_level(**context):
         if not chunk:
             raise ValueError(f"Chunk with label '{chunk_label}' not found in project.")
 
-        build_3d_mesh_high_level_filepath = os.path.join(project_path, "export")
-        if not os.path.exists(build_3d_mesh_high_level_filepath):
-            os.makedirs(build_3d_mesh_high_level_filepath, exist_ok=True)
+        build_3d_mesh_high_resolution_filepath = os.path.join(project_path, "export")
+        if not os.path.exists(build_3d_mesh_high_resolution_filepath):
+            os.makedirs(build_3d_mesh_high_resolution_filepath, exist_ok=True)
 
-        build_3d_mesh_high_level_name = f"{project_code}_3dmesh_hl.obj"
-        output_path = os.path.join(build_3d_mesh_high_level_filepath, build_3d_mesh_high_level_name)
+        build_3d_mesh_high_resolution_name = f"{project_code}_3dmesh_hr.obj"
+        output_path = os.path.join(build_3d_mesh_high_resolution_filepath, build_3d_mesh_high_resolution_name)
 
-        logger.info(f"[DEBUG] Output Path, 3d mesh high level: {output_path}")
+        logger.info(f"[DEBUG] Output Path, 3d mesh high resolution: {output_path}")
 
         chunk.buildDepthMaps(
             downscale=4,
@@ -113,7 +113,7 @@ def build_3d_mesh_high_level(**context):
 
 
         payload={
-            "3d_mesh_hl_output_path": output_path
+            "3d_mesh_hr_output_path": output_path
         }
 
         try:
@@ -123,7 +123,7 @@ def build_3d_mesh_high_level(**context):
                 task_name=task_name,
                 payload=payload
             )
-            logger.info(f"[{task_name}] Task completed successfully. Build 3d mesh high level {output_path}")
+            logger.info(f"[{task_name}] Task completed successfully. Build 3d mesh high resolution {output_path}")
         except Exception as notify_error:
             logger.error(f"[{task_name}] Notification failed: {type(notify_error).__name__} - {str(notify_error)}")
             raise notify_error
