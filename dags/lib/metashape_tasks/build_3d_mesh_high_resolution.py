@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
         "project_path",
         "project_name",
         "chunk_label_HR",
-        "project_code"
+        "project_code",
+        "mesh_hr_batch_id"
     ],
     method="GET"
 )
@@ -24,9 +25,13 @@ def build_3d_mesh_high_resolution(**context):
     workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
     project_path = context["project_path"]
     project_name = context["project_name"]
+    mesh_hr_batch_id = context["mesh_hr_batch_id"]
 
     try:
-
+        
+        nas_root_path = get_variable("nas_root_path")
+        windows_root_path = get_variable("windows_nas_root_path")
+        metashape_server_ip = get_variable("METASHAPE_SERVER_IP")
 
         logger.info(f"[{task_name}] Starting build_3d_mesh_high_resolution task with workflowId: {workflow_id}")
         chunk_label = context["chunk_label_HR"]
@@ -55,40 +60,62 @@ def build_3d_mesh_high_resolution(**context):
 
         logger.info(f"[DEBUG] Output Path, 3d mesh high resolution: {output_path}")
 
-        if not chunk.depth_maps:
-            logger.info("[INFO] Depth maps not found. Its Generating...")
-            chunk.buildDepthMaps(
-                downscale=2,
-                filter_mode=Metashape.MildFiltering
-            )
-            logger.info("[INFO] Depth maps produced.")
-        else:
-            logger.info("[INFO] Depth maps is already exists. This will use.")
+        # Daha önceki batch varsa iptal et
+        if mesh_hr_batch_id:
+            try:
+                client = ms.NetworkClient()
+                client.connect(metashape_server_ip)
+                client.abortBatch(mesh_hr_batch_id)
+                logger.info(f"Previous batch {mesh_hr_batch_id} aborted.")
+                client.disconnect()
+            except Exception as e:
+                logger.warning(f"[WARNING] Could not abort previous batch: {e}")
 
-        logger.info("[INFO] Mesh model is creating...")
-        chunk.buildModel(
-            surface_type=Metashape.SurfaceType.Arbitrary,
-            source_data=Metashape.DataSource.DepthMapsData,
-            interpolation=Metashape.Interpolation.EnabledInterpolation,
-            face_count=Metashape.FaceCount.MediumFaceCount,
-            vertex_colors=True,
-            reuse_depth=True
-        )
-        logger.info("[INFO] Mesh model created.")
+        # 1. DepthMaps Task
+        build_depth_maps_task = Metashape.Tasks.BuildDepthMaps()
+        build_depth_maps_task.downscale = 2
+        build_depth_maps_task.filter_mode = Metashape.MildFiltering
+        build_depth_maps_task.subdivide_task = True
 
-        chunk.exportModel(
-            path=output_path,
-            binary=True,
-            precision=6,
-            texture_format=Metashape.ImageFormat.ImageFormatJPEG,
-            texture=True,
-            normals=True,
-            colors=True,
-            cameras=False,
-            format=Metashape.ModelFormat.ModelFormatOBJ
-        )
+        # 2. BuildModel Task
+        build_model_task = Metashape.Tasks.BuildModel()
+    		build_model_task.source_data = Metashape.DepthMapsData
+    		build_model_task.surface_type = Metashape.Arbitrary
+    		build_model_task.face_count = Metashape.HighFaceCount
+    		build_model_task.interpolation = Metashape.EnabledInterpolation
+    		build_model_task.vertex_colors = True
+    		build_model_task.keep_depth = True 
+    		build_model_task.subdivide_task = True
+        
+        # 3. ExportModel Task
+        export_model_task = Metashape.Tasks.ExportModel()
+    		export_model_task.path = output_path
+    		export_model_task.format = Metashape.ModelFormat.ModelFormatOBJ
+    		export_model_task.binary = False
+    		export_model_task.save_texture = False # vertex_color olduğu buildTexture yapmadık. buildTexture bir doku oluşturup onu renklendiriyor. vertex_color da aynı işlemi yapıyormuş.
+    		export_model_task.save_normals = True
+    		export_model_task.save_colors = True
+    		export_model_task.save_uv = True
+    		export_model_task.texture_format = Metashape.ImageFormat.ImageFormatJPEG
 
-        logger.info(f"[INFO] Mesh model is exported: {output_path}")
+        # Batch'i oluştur ve başlat
+        client = Metashape.NetworkClient()
+        client.connect(metashape_server_ip)
+
+        relative_path = os.path.join(project_path, f"{project_name}.psx").replace(nas_root_path, windows_root_path).replace(
+            "/", "\\")
+        logger.info(f"[DEBUG] Relative project path for batch: {relative_path}")
+
+        batch_id = client.createBatch(relative_path, [build_depth_maps_task.toNetworkTask(chunk), build_model_task.toNetworkTask(chunk), export_model_task.toNetworkTask(chunk)])
+        client.setBatchPaused(batch_id, False)
+        logger.info(f"[SUCCESS] Batch submitted and running. ID: {batch_id}")
+
+        payload = {
+            "mesh_hr_batch_id": batch_id
+        }
+
+        logger.info(f"[{task_name}] Payload prepared for notification: {json.dumps(payload, indent=2)}")
+
 
         try:
             workflow_id = context["dag_run"].conf.get("workflowId")
@@ -101,14 +128,14 @@ def build_3d_mesh_high_resolution(**context):
 
 
         payload={
-            "3d_mesh_hr_output_path": output_path
+            "mesh_hr_output_path": output_path
         }
 
         try:
 
             notify_task_completion(
                 workflow_id=workflow_id,
-                task_name=task_name,
+                task_name="wait_wf_3d_mesh_hr",
                 payload=payload
             )
             logger.info(f"[{task_name}] Task completed successfully. Build 3d mesh high resolution {output_path}")

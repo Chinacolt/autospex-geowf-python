@@ -21,8 +21,9 @@ from lib.metashape_tasks.reivew_alignment_and_georeferencing import review_align
 from lib.metashape_tasks.review_tie_point_removal_result import review_tie_point_removal_result
 from lib.metashape_tasks.build_3d_mesh_high_resolution import build_3d_mesh_high_resolution
 from lib.metashape_tasks.build_3d_mesh_high_level import build_3d_mesh_high_level
+from lib.metashape_tasks.wait_wf_3d_mesh_hl import wait_wf_3d_mesh_hl
+from lib.metashape_tasks.wait_wf_3d_mesh_hr import wait_wf_3d_mesh_hr
 from common.callbacks import task_failure_callback
-
 
 default_args = {
     "owner": "airflow",
@@ -39,13 +40,10 @@ with DAG(
     tags=["metashape"],
 ) as dag:
 
-
-
     @task(task_id="copy_data_to_nas")
     def t_copy_data_to_nas(**context):
         return copy_data_to_nas(**context)
 
-    
     @task(task_id="create_metashape_project")
     def t_create_metashape_project(**context):
         return create_metashape_project(**context)
@@ -105,10 +103,18 @@ with DAG(
     @task(task_id="build_3d_mesh_high_level")
     def t_build_3d_mesh_high_level(**context):
         return build_3d_mesh_high_level(**context)
+    
+    @task(task_id="wait_wf_3d_mesh_hl")
+    def t_wait_wf_3d_mesh_hl(**context):
+        return wait_wf_3d_mesh_hl(**context)
 
     @task(task_id="build_3d_mesh_high_resolution")
     def t_build_3d_mesh_high_resolution(**context):
         return build_3d_mesh_high_resolution(**context)
+
+    @task(task_id="wait_wf_3d_mesh_hr")
+    def t_wait_wf_3d_mesh_hr(**context):
+        return wait_wf_3d_mesh_hr(**context)
 
     
     
@@ -129,5 +135,7 @@ with DAG(
         >> t_export_camera_positions_high_level()
         >> t_export_camera_positions_high_resolution()
         >> t_build_3d_mesh_high_level()
+        >> t_wait_wf_3d_mesh_hl()
         >> t_build_3d_mesh_high_resolution()
+        >> t_wait_wf_3d_mesh_hr()
     )

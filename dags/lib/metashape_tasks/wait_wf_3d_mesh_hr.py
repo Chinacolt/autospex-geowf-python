@@ -12,26 +12,26 @@ logger = logging.getLogger(__name__)
 @inject(
     workflow_conf_key="workflowId",
     read_params=[
-        'run_alignment_batch_id',
+        'mesh_hr_batch_id',
         "project_path",
         "project_name"
     ],
     method="GET"
 )
-def wait_wf_run_alignment(**context):
+def wait_wf_3d_mesh_hr(**context):
     task_instance = context.get("task_instance") or context.get("ti")
-    run_alignment_batch_id = context["run_alignment_batch_id"]
+    mesh_hr_batch_id = context["mesh_hr_batch_id"]
     metashape_server_ip = get_variable("METASHAPE_SERVER_IP")
 
     project_path = context.get("project_path")
     project_name = context.get("project_name")
 
-    logger.info(f"run_alignment_batch_id: {run_alignment_batch_id}")
+    logger.info(f"mesh_hr_batch_id: {mesh_hr_batch_id}")
     try:
         client = Metashape.NetworkClient()
         client.connect(metashape_server_ip)
         while True:
-            batch_info = client.batchInfo(run_alignment_batch_id)
+            batch_info = client.batchInfo(mesh_hr_batch_id)
             
             print(f"Batch Info: {batch_info}")
             # IF completed, break the loop
@@ -41,8 +41,8 @@ def wait_wf_run_alignment(**context):
                     workflow_id = context["dag_run"].conf.get("workflowId")
                     notify_task_completion(
                         workflow_id=workflow_id,
-                        task_name="run_alignment",
-                        payload={"run_alignment": "completed"}
+                        task_name="build_3d_mesh_high_resolution",
+                        payload={"build_3d_mesh_high_resolution": "completed"}
                     )
                 except Exception as notify_error:
                     logger.error(f"[ERROR] Failed to notify task completion: {str(notify_error)}")            
@@ -61,7 +61,7 @@ def wait_wf_run_alignment(**context):
 
         error_payload = {
             "workflowId": workflow_id,
-            "taskName": "run_alignment",
+            "taskName": "build_3d_mesh_high_resolution",
             "errorMessage": str(e),
             "projectInfo": {
                 "project_path": project_path,
@@ -70,7 +70,7 @@ def wait_wf_run_alignment(**context):
 
         }
 
-        task_instance.xcom_push(key="run_alignment", value=error_payload)
+        task_instance.xcom_push(key="build_3d_mesh_high_resolution", value=error_payload)
         raise e
 
     finally:
