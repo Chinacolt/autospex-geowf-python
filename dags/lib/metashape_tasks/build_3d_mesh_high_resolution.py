@@ -55,52 +55,40 @@ def build_3d_mesh_high_resolution(**context):
 
         logger.info(f"[DEBUG] Output Path, 3d mesh high resolution: {output_path}")
 
-        chunk.buildDepthMaps(
-            downscale=4,
-            filter_mode=Metashape.FilterMode.MildFiltering,
-            reuse_depth=True,
-            subdivide_task=True
-        )
+        if not chunk.depth_maps:
+            logger.info("[INFO] Depth maps not found. Its Generating...")
+            chunk.buildDepthMaps(
+                downscale=2,
+                filter_mode=Metashape.MildFiltering
+            )
+            logger.info("[INFO] Depth maps produced.")
+        else:
+            logger.info("[INFO] Depth maps is already exists. This will use.")
 
-        chunk.buildPointCloud(
-            source_data=Metashape.DataSource.DepthMapsData,
-            point_colors=True,
-            point_confidence=False,
-            keep_depth=True,
-            subdivide_task=True
-        )
-
+        logger.info("[INFO] Mesh model is creating...")
         chunk.buildModel(
-            source_data=Metashape.DataSource.DepthMapsData,
             surface_type=Metashape.SurfaceType.Arbitrary,
+            source_data=Metashape.DataSource.DepthMapsData,
             interpolation=Metashape.Interpolation.EnabledInterpolation,
-            face_count=Metashape.FaceCount.HighFaceCount,
+            face_count=Metashape.FaceCount.MediumFaceCount,
             vertex_colors=True,
-            volumetric_masks=False,
-            keep_depth=True,
-            subdivide_task=True
+            reuse_depth=True
         )
-
-        chunk.buildTexture(
-            blending_mode=Metashape.BlendingMode.MosaicBlending,
-            texture_size=8192,
-            fill_holes=True,
-            ghosting_filter=True
-        )
+        logger.info("[INFO] Mesh model created.")
 
         chunk.exportModel(
             path=output_path,
-            format=Metashape.ModelFormat.ModelFormatOBJ,
+            binary=True,
+            precision=6,
             texture_format=Metashape.ImageFormat.ImageFormatJPEG,
-            texture_compression=90,
+            texture=True,
             normals=True,
             colors=True,
-            uv=True,
-            strip_textures=False,
-            save_chunks=False,
-            save_markers=False,
-            save_camera_locations=False
+            cameras=False,
+            format=Metashape.ModelFormat.ModelFormatOBJ
         )
+
+        logger.info(f"[INFO] Mesh model is exported: {output_path}")
 
         try:
             workflow_id = context["dag_run"].conf.get("workflowId")
