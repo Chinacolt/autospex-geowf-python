@@ -1,7 +1,8 @@
 import Metashape
 import os
 import logging
-from common.config import inject
+import json
+from common.config import inject, get_variable
 from common.helpers import notify_task_completion
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,7 @@ def build_3d_mesh_high_resolution(**context):
         # Daha önceki batch varsa iptal et
         if mesh_hr_batch_id:
             try:
-                client = ms.NetworkClient()
+                client = Metashape.NetworkClient()
                 client.connect(metashape_server_ip)
                 client.abortBatch(mesh_hr_batch_id)
                 logger.info(f"Previous batch {mesh_hr_batch_id} aborted.")
@@ -79,24 +80,24 @@ def build_3d_mesh_high_resolution(**context):
 
         # 2. BuildModel Task
         build_model_task = Metashape.Tasks.BuildModel()
-    	build_model_task.source_data = Metashape.DepthMapsData
-    	build_model_task.surface_type = Metashape.Arbitrary
-    	build_model_task.face_count = Metashape.HighFaceCount
-		build_model_task.interpolation = Metashape.EnabledInterpolation
-    	build_model_task.vertex_colors = True
-    	build_model_task.keep_depth = True 
-		build_model_task.subdivide_task = True
+        build_model_task.source_data = Metashape.DepthMapsData
+        build_model_task.surface_type = Metashape.Arbitrary
+        build_model_task.face_count = Metashape.HighFaceCount
+        build_model_task.interpolation = Metashape.EnabledInterpolation
+        build_model_task.vertex_colors = True
+        build_model_task.keep_depth = True 
+        build_model_task.subdivide_task = True
         
         # 3. ExportModel Task
         export_model_task = Metashape.Tasks.ExportModel()
-    	export_model_task.path = output_path
-    	export_model_task.format = Metashape.ModelFormat.ModelFormatOBJ
-		export_model_task.binary = False
-    	export_model_task.save_texture = False # vertex_color olduğu buildTexture yapmadık. buildTexture bir doku oluşturup onu renklendiriyor. vertex_color da aynı işlemi yapıyormuş.
-    	export_model_task.save_normals = True
-		export_model_task.save_colors = True
-    	export_model_task.save_uv = True
-    	export_model_task.texture_format = Metashape.ImageFormat.ImageFormatJPEG
+        export_model_task.path = output_path
+        export_model_task.format = Metashape.ModelFormat.ModelFormatOBJ
+        export_model_task.binary = False
+        export_model_task.save_texture = False # vertex_color olduğu buildTexture yapmadık. buildTexture bir doku oluşturup onu renklendiriyor. vertex_color da aynı işlemi yapıyormuş.
+        export_model_task.save_normals = True
+        export_model_task.save_colors = True
+        export_model_task.save_uv = True
+        export_model_task.texture_format = Metashape.ImageFormat.ImageFormatJPEG
 
         # Batch'i oluştur ve başlat
         client = Metashape.NetworkClient()
