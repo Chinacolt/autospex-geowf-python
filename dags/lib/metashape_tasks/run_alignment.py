@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
     read_params=[
         "project_path",
         "project_name",
-        "nas_folder_path",
         "run_alignment_batch_id",
         "key_point_limit",
         "tie_point_limit",
@@ -43,7 +42,6 @@ def run_alignment(**context):
         # Get Params
         project_path = context["project_path"]
         project_name = context["project_name"]
-        root_path = context["nas_folder_path"]
         key_point_limit = int(context["key_point_limit"])
         tie_point_limit = int(context["tie_point_limit"])
         generic_preselection = not (context["generic_preselection"] == "False")

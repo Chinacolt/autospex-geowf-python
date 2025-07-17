@@ -38,7 +38,7 @@ def export_camera_positions_high_resolution(**context):
             raise FileNotFoundError(f"Project file not found at {project_file_path}")
 
         doc = Metashape.Document()
-        doc.open(project_file_path)
+        doc.open(project_file_path, read_only=False)
 
         chunk = next((c for c in doc.chunks if c.label == chunk_label), None)
         if not chunk:

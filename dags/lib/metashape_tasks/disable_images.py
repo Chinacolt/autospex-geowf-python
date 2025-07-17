@@ -42,7 +42,7 @@ def disable_images(**context):
             raise FileNotFoundError(f"Project file not found at {project_file_path}")
 
         doc = Metashape.Document()
-        doc.open(project_file_path)
+        doc.open(project_file_path, read_only=False)
 
         chunk = next((c for c in doc.chunks if c.label == chunk_label), None)
         if not chunk:
@@ -71,8 +71,6 @@ def disable_images(**context):
                 disabled_count += 1
                 group_disable_map.setdefault(group_label, []).append(filename)
 
-        doc.save()
-        doc.open(project_file_path)
 
         disabled_camera_group_labels = []
         for group in chunk.camera_groups:
@@ -91,6 +89,8 @@ def disable_images(**context):
                     "name": label,
                     "disable": group_disable_map[label]
                 })
+
+        doc.save()
 
         logger.info(f"[INFO] Total disabled images: {disabled_count}")
 

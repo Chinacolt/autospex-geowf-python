@@ -60,11 +60,10 @@ def create_data_chunks_hl_hr(**context):
             raise FileNotFoundError(f"Project file not found: {project_file_path}")
 
         doc = ms.Document()
-        doc.open(project_file_path)
+        doc.open(project_file_path, read_only=False)
 
         chunk = doc.addChunk()
         chunk.label = "Chunk_HL_HR"
-        doc.save()
 
         created_camera_groups = {}
 
