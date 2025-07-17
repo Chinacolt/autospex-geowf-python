@@ -26,7 +26,7 @@ def build_3d_mesh_high_resolution(**context):
     workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
     project_path = context["project_path"]
     project_name = context["project_name"]
-    mesh_hr_batch_id = context["mesh_hr_batch_id"]
+    mesh_hr_batch_id = context.get("mesh_hr_batch_id")
 
     try:
         
@@ -61,6 +61,9 @@ def build_3d_mesh_high_resolution(**context):
 
         logger.info(f"[DEBUG] Output Path, 3d mesh high resolution: {output_path}")
 
+        server_output_path = output_path.replace(nas_root_path, windows_root_path).replace("/", "\\")
+        logger.info(f"[DEBUG] Server-side output path for 3d mesh high resolution: {server_output_path}")
+
         # Daha önceki batch varsa iptal et
         if mesh_hr_batch_id:
             try:
@@ -90,14 +93,13 @@ def build_3d_mesh_high_resolution(**context):
         
         # 3. ExportModel Task
         export_model_task = Metashape.Tasks.ExportModel()
-        export_model_task.path = output_path
+        export_model_task.path = server_output_path
         export_model_task.format = Metashape.ModelFormat.ModelFormatOBJ
         export_model_task.binary = False
         export_model_task.save_texture = False # vertex_color olduğu buildTexture yapmadık. buildTexture bir doku oluşturup onu renklendiriyor. vertex_color da aynı işlemi yapıyormuş.
         export_model_task.save_normals = True
         export_model_task.save_colors = True
         export_model_task.save_uv = True
-        export_model_task.texture_format = Metashape.ImageFormat.ImageFormatJPEG
 
         # Batch'i oluştur ve başlat
         client = Metashape.NetworkClient()
@@ -111,13 +113,6 @@ def build_3d_mesh_high_resolution(**context):
         client.setBatchPaused(batch_id, False)
         logger.info(f"[SUCCESS] Batch submitted and running. ID: {batch_id}")
 
-        payload = {
-            "mesh_hr_batch_id": batch_id
-        }
-
-        logger.info(f"[{task_name}] Payload prepared for notification: {json.dumps(payload, indent=2)}")
-
-
         try:
             workflow_id = context["dag_run"].conf.get("workflowId")
             logger.info(f"[DEBUG] Received workflowId from triggering DAG: {workflow_id}")
@@ -129,8 +124,11 @@ def build_3d_mesh_high_resolution(**context):
 
 
         payload={
-            "mesh_hr_output_path": output_path
+            "mesh_hr_output_path": server_output_path,
+            "mesh_hr_batch_id": batch_id
         }
+
+        logger.info(f"[{task_name}] Payload prepared for notification: {json.dumps(payload, indent=2)}")
 
         try:
 
@@ -139,7 +137,7 @@ def build_3d_mesh_high_resolution(**context):
                 task_name="wait_wf_3d_mesh_hr",
                 payload=payload
             )
-            logger.info(f"[{task_name}] Task completed successfully. Build 3d mesh high resolution {output_path}")
+            logger.info(f"[{task_name}] Task completed successfully. Build 3d mesh high resolution {server_output_path}")
         except Exception as notify_error:
             logger.error(f"[{task_name}] Notification failed: {type(notify_error).__name__} - {str(notify_error)}")
             raise notify_error
