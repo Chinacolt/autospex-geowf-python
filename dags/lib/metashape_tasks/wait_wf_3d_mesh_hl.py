@@ -47,9 +47,10 @@ def wait_wf_3d_mesh_hl(**context):
                 except Exception as notify_error:
                     logger.error(f"[ERROR] Failed to notify task completion: {str(notify_error)}")            
                 break
-            elif batch_info['state'] in ['pending', 'queued', 'inprogress']:
-                print(f"Batch state is {batch_info['state']}. Waiting for completion...")
-            else:
+            # 10 saniyede bir burada log basılıyordu performans açısından in progress statüsünde loglama kaldırıldı
+            #elif batch_info['state'] in ['pending', 'queued', 'inprogress']:
+                #print(f"Batch state is {batch_info['state']}. Waiting for completion...")
+            elif batch_info['state'] in ['failed', 'aborted']:
                 # throw AirflowException
                 print(f"Batch processing failed or aborted with state: {batch_info['state']}")
                 raise Exception(f"Batch processing failed or aborted with state: {batch_info['state']}")

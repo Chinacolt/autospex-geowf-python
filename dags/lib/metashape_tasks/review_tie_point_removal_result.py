@@ -34,7 +34,7 @@ def review_tie_point_removal_result(**context):
         logger.info(f"[{task_name}] Attempt {attempt + 1}: review_tie_point_removal_result = {param_val}")
         
         success_payload = {
-            "review_tie_point_removal_result": "Completed review tie point removal result."
+            "review_tie_point_removal_result_message": "Completed review tie point removal result."
         }
 
         if param_val is True:

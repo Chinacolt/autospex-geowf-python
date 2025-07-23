@@ -36,6 +36,7 @@ def create_metashape_project(**context):
         organization_code = context.get("organization_code")
         survey_code = context.get("survey_code")
         nas_root_path = get_variable("nas_root_path")
+        windows_root_path = get_variable("windows_nas_root_path")
         nas_folder_path = context.get("nas_folder_path")
         s3_location_bucket = context.get("s3_location_bucket")
 
@@ -74,9 +75,13 @@ def create_metashape_project(**context):
         if not workflow_id:
             raise Exception("workflowId not found in dag_run.conf")
         
+        windows_project_path = os.path.join(project_dir, f"{project_name}.psx").replace(nas_root_path, windows_root_path).replace(
+            "/", "\\")
+
         payload={
                     "project_code": project_code,
                     "project_path": project_dir,
+                    "windows_project_path": windows_project_path,
                     "project_name": project_name
         }
 
