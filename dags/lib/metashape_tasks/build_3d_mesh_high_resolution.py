@@ -78,28 +78,44 @@ def build_3d_mesh_high_resolution(**context):
         # 1. DepthMaps Task
         build_depth_maps_task = Metashape.Tasks.BuildDepthMaps()
         build_depth_maps_task.downscale = 2
-        build_depth_maps_task.filter_mode = Metashape.MildFiltering
+        build_depth_maps_task.filter_mode = Metashape.FilterMode.MildFiltering
         build_depth_maps_task.subdivide_task = True
 
         # 2. BuildModel Task
         build_model_task = Metashape.Tasks.BuildModel()
-        build_model_task.source_data = Metashape.DepthMapsData
-        build_model_task.surface_type = Metashape.Arbitrary
-        build_model_task.face_count = Metashape.HighFaceCount
-        build_model_task.interpolation = Metashape.EnabledInterpolation
+        build_model_task.source_data = Metashape.DataSource.DepthMapsData
+        build_model_task.surface_type = Metashape.SurfaceType.Arbitrary
+        build_model_task.face_count = Metashape.FaceCount.HighFaceCount
+        build_model_task.interpolation = Metashape.Interpolation.EnabledInterpolation
         build_model_task.vertex_colors = True
         build_model_task.keep_depth = True 
         build_model_task.subdivide_task = True
+
+        # 3. BuildUV Task
+        build_uv_task = Metashape.Tasks.BuildUV()
+        build_uv_task.mapping_mode = Metashape.MappingMode.GenericMapping
+        build_uv_task.texture_size = 8192
+        build_uv_task.page_count = 1
+
+        # 4. BuildTexture Task
+        build_texture_task = Metashape.Tasks.BuildTexture()
+        build_texture_task.blending_mode = Metashape.BlendingMode.MosaicBlending
+        build_texture_task.texture_size = 8192 # Should generally match the texture_size set in build_uv_task
+        build_texture_task.fill_holes = True
+        build_texture_task.ghosting_filter = True
+        build_texture_task.source_data = Metashape.DataSource.ImagesData
+        build_texture_task.texture_type = Metashape.Model.TextureType.DiffuseMap
         
-        # 3. ExportModel Task
+        # 5. ExportModel Task
         export_model_task = Metashape.Tasks.ExportModel()
         export_model_task.path = server_output_path
         export_model_task.format = Metashape.ModelFormat.ModelFormatOBJ
         export_model_task.binary = False
-        export_model_task.save_texture = False # vertex_color olduğu buildTexture yapmadık. buildTexture bir doku oluşturup onu renklendiriyor. vertex_color da aynı işlemi yapıyormuş.
+        export_model_task.save_texture = True
         export_model_task.save_normals = True
         export_model_task.save_colors = True
         export_model_task.save_uv = True
+        export_model_task.save_markers = True
 
         # Batch'i oluştur ve başlat
         client = Metashape.NetworkClient()
@@ -109,7 +125,7 @@ def build_3d_mesh_high_resolution(**context):
             "/", "\\")
         logger.info(f"[DEBUG] Relative project path for batch: {relative_path}")
 
-        batch_id = client.createBatch(relative_path, [build_depth_maps_task.toNetworkTask(chunk), build_model_task.toNetworkTask(chunk), export_model_task.toNetworkTask(chunk)])
+        batch_id = client.createBatch(relative_path, [build_depth_maps_task.toNetworkTask(chunk), build_model_task.toNetworkTask(chunk), build_uv_task.toNetworkTask(chunk), build_texture_task.toNetworkTask(chunk), export_model_task.toNetworkTask(chunk)])
         client.setBatchPaused(batch_id, False)
         logger.info(f"[SUCCESS] Batch submitted and running. ID: {batch_id}")
 
