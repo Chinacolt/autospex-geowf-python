@@ -103,7 +103,6 @@ def build_3d_mesh_high_resolution(**context):
         build_texture_task.texture_size = 8192 # Should generally match the texture_size set in build_uv_task
         build_texture_task.fill_holes = True
         build_texture_task.ghosting_filter = True
-        build_texture_task.source_data = Metashape.DataSource.ImagesData
         build_texture_task.texture_type = Metashape.Model.TextureType.DiffuseMap
         
         # 5. ExportModel Task
