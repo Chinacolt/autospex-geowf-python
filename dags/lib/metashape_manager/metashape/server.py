@@ -51,7 +51,16 @@ def create(region_name: str, subnet_id: str,
         }
     )
 
-    ip = get_instance_ip(instance_id=instance_id, region_name=region_name, use_private_ip=True)
+    while not is_instance_ready(instance_id, region_name):
+        logger.info(f"wait_for_instance_ip | Waiting for instance {instance_id} ip to be assigned...")
+        sleep(5)
+        try:
+            ip = get_instance_ip(instance_id=instance_id, region_name=region_name, use_private_ip=True)
+        except Exception:
+            continue
+
+    logger.info(f"wait_for_instance_ip | Instance {instance_id} ip assigned: {ip}")
+
     upsert_dns_record(r53_hosted_zone_id, server_fqdn, ip, ttl=60)
 
 
