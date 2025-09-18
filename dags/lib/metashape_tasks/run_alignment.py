@@ -7,7 +7,7 @@ from common.config import inject
 from common.helpers import notify_task_completion
 from common.utils import get_accuracy_value
 
-from dags.lib.metashape import with_licence
+from lib.metashape import with_licence
 
 logger = logging.getLogger(__name__)
 

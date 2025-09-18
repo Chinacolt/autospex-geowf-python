@@ -4,7 +4,7 @@ from airflow import DAG
 from airflow.decorators import task
 
 from common.callbacks import task_failure_callback
-from lib.metashape_manager.metashape_manager import manager as metashape_manager
+from lib.metashape_manager import manager as metashape_manager
 from lib.metashape_tasks.build_3d_mesh_high_level import build_3d_mesh_high_level
 from lib.metashape_tasks.build_3d_mesh_high_resolution import build_3d_mesh_high_resolution
 from lib.metashape_tasks.copy_data_to_nas import copy_data_to_nas

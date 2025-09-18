@@ -7,7 +7,7 @@ from common.config import inject, get_variable
 from common.helpers import notify_task_completion
 import time
 
-from dags.lib.metashape import with_licence
+from lib.metashape import with_licence
 
 logger = logging.getLogger(__name__)
 
