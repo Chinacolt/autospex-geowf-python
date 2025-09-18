@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
     read_params=[
         "project_path",
         "project_name",
-        "chunk_label"
+        "chunk_label","metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )

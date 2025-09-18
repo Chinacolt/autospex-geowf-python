@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @inject(
     workflow_conf_key="workflowId",
-    read_params=["review_alignment_and_georeferencing"],
+    read_params=["review_alignment_and_georeferencing","metashape_server_ip", "nas_root_path"],
     method="GET"
 )
 @with_licence

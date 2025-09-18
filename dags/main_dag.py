@@ -4,6 +4,7 @@ from airflow import DAG
 from airflow.decorators import task
 
 from common.callbacks import task_failure_callback
+from common.helpers import notify_task_completion
 from lib.metashape_manager import manager as metashape_manager
 from lib.metashape_tasks.build_3d_mesh_high_level import build_3d_mesh_high_level
 from lib.metashape_tasks.build_3d_mesh_high_resolution import build_3d_mesh_high_resolution
@@ -43,6 +44,7 @@ with DAG(
     def t_create_cluster(**context):
         task_instance = context.get("task_instance") or context.get("ti")
         dag_run = context.get("dag_run")
+        task_name = task_instance.task_id
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
 
         server_instance_type = "c5.large"
@@ -54,8 +56,24 @@ with DAG(
                                                                          worker_instance_type=worker_instance_type,
                                                                          worker_count=worker_count
                                                                          )
-        task_instance.xcom_push(key="metashape_server_ip", value=server_fqdn)
-        task_instance.xcom_push(key="nas_root_path", value=worker_data_path)
+        # task_instance.xcom_push(key="metashape_server_ip", value=server_fqdn)
+        # task_instance.xcom_push(key="nas_root_path", value=worker_data_path)
+
+        payload = {
+            "metashape_server_ip": server_fqdn,
+            "nas_root_path": worker_data_path
+        }
+
+        try:
+            notify_task_completion(
+                workflow_id=workflow_id,
+                task_name=task_name,
+                payload=payload
+            )
+            print(f"[SUCCESS] Task completed successfully. XCom payload pushed.")
+        except Exception as notify_error:
+            print(f"[ERROR] Failed to notify task completion: {str(notify_error)}")
+            raise
 
 
     @task(task_id="copy_data_to_nas")

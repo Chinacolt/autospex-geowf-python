@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
         "project_path",
         "project_name",
         "chunk_label_HL",
-        "project_code"
+        "project_code","metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
         "chunk_label",
         "reprojection_error_threshold",
         "reconstruction_uncertainty_threshold",
-        "projection_accuracy_threshold"
+        "projection_accuracy_threshold","metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )

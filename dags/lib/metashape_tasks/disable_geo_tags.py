@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @inject(
     workflow_conf_key="workflowId",
-    read_params=["project_path", "project_name", "chunk_label"],
+    read_params=["project_path", "project_name", "chunk_label","metashape_server_ip", "nas_root_path"],
     method="GET"
 )
 @with_licence

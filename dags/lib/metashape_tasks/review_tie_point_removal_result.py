@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @inject(
     workflow_conf_key="workflowId",
-    read_params=["review_tie_point_removal_result"],
+    read_params=["review_tie_point_removal_result","metashape_server_ip", "nas_root_path"],
     method="GET"
 )
 @with_licence

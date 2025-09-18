@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
         "accuracy",
         "guided_image_matching",
         "reset_current_alignment",
-        "exclude_stationary_tie_points"
+        "exclude_stationary_tie_points","metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )

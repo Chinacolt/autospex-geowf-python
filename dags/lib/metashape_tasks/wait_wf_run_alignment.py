@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
     read_params=[
         'run_alignment_batch_id',
         "project_path",
-        "project_name"
+        "project_name","metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )

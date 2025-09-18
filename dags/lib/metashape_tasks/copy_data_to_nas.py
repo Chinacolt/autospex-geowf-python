@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 @inject(
     workflow_conf_key="workflowId",
-    read_params=["s3_location_bucket", "nas_folder_path", "__image_group_paths"],
+    read_params=["s3_location_bucket", "nas_folder_path", "__image_group_paths", "metashape_server_ip",
+                 "nas_root_path"],
     method="GET"
 )
 def copy_data_to_nas(**context):
