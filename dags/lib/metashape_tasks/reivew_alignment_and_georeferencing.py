@@ -5,6 +5,8 @@ from common.config import inject, re_inject_param
 from common.config import inject
 from common.helpers import notify_task_completion
 
+from dags.lib.metashape import with_licence
+
 logger = logging.getLogger(__name__)
 
 
@@ -13,6 +15,7 @@ logger = logging.getLogger(__name__)
     read_params=["review_alignment_and_georeferencing"],
     method="GET"
 )
+@with_licence
 def review_alignment_and_georeferencing(**context):
     logger = logging.getLogger("airflow.task")
     task_instance = context.get("task_instance") or context.get("ti")

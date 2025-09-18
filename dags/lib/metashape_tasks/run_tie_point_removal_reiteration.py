@@ -5,6 +5,8 @@ from common.config import inject
 import json
 from common.helpers import notify_task_completion
 
+from dags.lib.metashape import with_licence
+
 logger = logging.getLogger(__name__)
 
 @inject(
@@ -19,6 +21,7 @@ logger = logging.getLogger(__name__)
     ],
     method="GET"
 )
+@with_licence
 def run_tie_point_removal_reiteration(**context):
     task_instance = context.get('task_instance') or context.get('ti')
     task_name = task_instance.task_id

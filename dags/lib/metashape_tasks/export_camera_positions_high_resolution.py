@@ -5,6 +5,8 @@ from common.config import inject
 import json
 from common.helpers import notify_task_completion
 
+from dags.lib.metashape import with_licence
+
 logger = logging.getLogger(__name__)
 
 @inject(
@@ -17,6 +19,7 @@ logger = logging.getLogger(__name__)
     ],
     method="GET"
 )
+@with_licence
 def export_camera_positions_high_resolution(**context):
     task_instance = context.get("task_instance") or context.get("ti")
     task_name = task_instance.task_id

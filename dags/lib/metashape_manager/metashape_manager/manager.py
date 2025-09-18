@@ -39,6 +39,8 @@ def create_cluster(uniq_id: str, server_instance_type: str, worker_instance_type
 
     current_worker_count = len(worker.get_instance_ids(region_name=region_name, uniq_id=uniq_id))
     required_worker_count = worker_count - current_worker_count
+    worker_data_path = DEFAULT_DATA_PATH_TEMPLATE.format(uniq_id=uniq_id)
+
     if required_worker_count < 0:
         required_worker_count = 0
 
@@ -55,11 +57,13 @@ def create_cluster(uniq_id: str, server_instance_type: str, worker_instance_type
             port=DEFAULT_PORT,
             efs_id=efs_id,
             mount_path=DEFAULT_MOUNT_PATH,
-            data_path=DEFAULT_DATA_PATH_TEMPLATE.format(uniq_id=uniq_id)
+            data_path=worker_data_path
         )
 
     server.wait_for_ready(region_name=region_name, uniq_id=uniq_id)
     worker.wait_for_ready(region_name=region_name, uniq_id=uniq_id)
+
+    return server_fqdn, worker_data_path
 
 
 def destroy_cluster(uniq_id: str):

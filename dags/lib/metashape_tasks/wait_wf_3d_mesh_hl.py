@@ -7,6 +7,8 @@ from common.config import inject, get_variable
 from common.helpers import notify_task_completion
 import time
 
+from dags.lib.metashape import with_licence
+
 logger = logging.getLogger(__name__)
 
 @inject(
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 def wait_wf_3d_mesh_hl(**context):
     task_instance = context.get("task_instance") or context.get("ti")
     mesh_hl_batch_id = context["mesh_hl_batch_id"]
-    metashape_server_ip = get_variable("METASHAPE_SERVER_IP")
+    metashape_server_ip = context.get("metashape_server_ip")
 
     project_path = context.get("project_path")
     project_name = context.get("project_name")

@@ -1,16 +1,20 @@
-from Metashape import Metashape as ms
-import os
 import glob
 import logging
+import os
 from collections import defaultdict
-import json
+
+from Metashape import Metashape as ms
+from common.config import inject
 from common.helpers import notify_task_completion
-from common.config import inject, get_variable
+
+from dags.lib.metashape import with_licence
 
 logger = logging.getLogger(__name__)
 
+
 def normalize_section_name(name: str) -> str:
     return name.lower().replace(" ", "-")
+
 
 @inject(
     workflow_conf_key="workflowId",
@@ -25,10 +29,10 @@ def normalize_section_name(name: str) -> str:
     ],
     method="GET"
 )
+@with_licence
 def create_data_chunks_hl_hr(**context):
     task_instance = context.get("task_instance") or context.get("ti")
     task_name = task_instance.task_id
-    
 
     try:
         dag_run = context.get("dag_run")
@@ -39,7 +43,7 @@ def create_data_chunks_hl_hr(**context):
         project_name = context["project_name"]
         image_group_paths = context.get("__image_group_paths", [])
         survey_code = context["survey_code"]
-        nas_root_path = get_variable("nas_root_path")
+        nas_root_path = context.get("nas_root_path")
         nas_folder_path = context["nas_folder_path"]
         country_code = context["country_code"]
         s3_location_bucket = context["s3_location_bucket"]
@@ -48,7 +52,6 @@ def create_data_chunks_hl_hr(**context):
                     "survey_code=%s | nas_root_path=%s | nas_folder_path=%s | country_code=%s",
                     project_path, project_name, image_group_paths,
                     survey_code, nas_root_path, nas_folder_path, country_code)
-
 
         grouped_by_s3 = defaultdict(list)
         for group in image_group_paths:
@@ -108,20 +111,20 @@ def create_data_chunks_hl_hr(**context):
         }
 
         logger.info(f"[{task_name}] Created chunk '{chunk.label}' with {len(camera_group_labels)} camera groups.")
-        
+
         try:
             notify_task_completion(
                 workflow_id=workflow_id,
                 task_name=task_name,
                 payload=payload
             )
-            logger.info(f"[{task_name}] Task completed successfully. Created chunk '{chunk.label}' with {len(camera_group_labels)} camera groups.")
+            logger.info(
+                f"[{task_name}] Task completed successfully. Created chunk '{chunk.label}' with {len(camera_group_labels)} camera groups.")
         except Exception as notify_error:
             logger.error(f"[{task_name}] Notification failed: {type(notify_error).__name__} - {str(notify_error)}")
             raise
     except Exception as e:
         logger.error(f"[{task_name}] Task failed create data chunks hl hr: {type(e).__name__} - {str(e)}")
-
 
         error_payload = {
             "workflowId": workflow_id,

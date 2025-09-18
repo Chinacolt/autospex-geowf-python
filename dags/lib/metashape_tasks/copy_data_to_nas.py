@@ -1,13 +1,15 @@
-import threading
 import json
-from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from common.config import inject, get_variable
-from common.helpers import notify_task_completion
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from common.config import inject
+from common.helpers import notify_task_completion
 
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
@@ -26,7 +28,7 @@ def copy_data_to_nas(**context):
         s3_location_bucket = context["s3_location_bucket"]
         nas_folder_path = context["nas_folder_path"]
         image_group_paths = context["__image_group_paths"]
-        nas_root_path = get_variable("nas_root_path")
+        nas_root_path = context.get("nas_root_path")
         hook = S3Hook(aws_conn_id="aws_default")
 
         task_inputs = []
@@ -49,7 +51,8 @@ def copy_data_to_nas(**context):
             thread_name = threading.current_thread().name
             try:
                 s3_key = f"{item['folder_id']}{item['file_name']}"
-                dest_path = Path(nas_root_path) / item["nas_folder_path"] / item["s3_location_bucket"] / item["folder_id"] / item["file_name"]
+                dest_path = Path(nas_root_path) / item["nas_folder_path"] / item["s3_location_bucket"] / item[
+                    "folder_id"] / item["file_name"]
 
                 if dest_path.is_file():
                     s3_object = hook.get_key(bucket_name=item["s3_location_bucket"], key=s3_key)
@@ -60,7 +63,8 @@ def copy_data_to_nas(**context):
                         logger.info(f"[THREAD: {thread_name}] Skipping {s3_key} — already downloaded and size matches.")
                         return {"status": "skipped", "file": str(dest_path), "thread": thread_name}
                     else:
-                        logger.warning(f"[THREAD: {thread_name}] Size mismatch for {s3_key} — local: {local_size}, S3: {s3_size}. Redownloading...")
+                        logger.warning(
+                            f"[THREAD: {thread_name}] Size mismatch for {s3_key} — local: {local_size}, S3: {s3_size}. Redownloading...")
 
                 dest_path.parent.mkdir(parents=True, exist_ok=True)
 

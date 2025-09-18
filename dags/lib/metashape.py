@@ -1,3 +1,6 @@
+import functools
+from typing import Callable, Any
+
 import Metashape
 
 
@@ -9,8 +12,20 @@ def activate(license_string: str):
     Args:
         license_string (str): The license key to activate.
     """
+
     Metashape.license.activate(license_string)
     print("License activated successfully.")
+
+
+# deactivate license
+def deactivate():
+    """
+    Deactivate the Metashape license.
+    """
+
+    Metashape.license.deactivate()
+    print("License deactivated successfully.")
+
 
 def get_document(path: str):
     """
@@ -23,7 +38,8 @@ def get_document(path: str):
     doc.open(path)
     return doc
 
-def create_project(psx_file_name:str):
+
+def create_project(psx_file_name: str):
     """
     Create a new Metashape project.
     :param psx_file_name: The name of the Metashape project file to create.
@@ -67,7 +83,8 @@ def create_chunk(doc: Metashape.Document, label: str):
     doc.save()  # Save the project after creating the chunk
     print(f"Chunk '{label}' created successfully.")
 
-def get_chunk(doc:Metashape.Document, label: str):
+
+def get_chunk(doc: Metashape.Document, label: str):
     """
     Get a chunk by its label.
     :param label: The label of the chunk to retrieve.
@@ -79,6 +96,18 @@ def get_chunk(doc:Metashape.Document, label: str):
         if chunk.label == label:
             return chunk
     return None
+
+
+def with_licence(f: Callable) -> Any:
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        activate("APSSA-LEL4T-OB8T8-E3BJR-ANXUO")
+        try:
+            return f(*args, **kwargs)
+        finally:
+            deactivate()
+
+    return wrapper
 
 
 def print_hi():

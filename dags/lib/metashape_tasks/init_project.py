@@ -1,26 +1,30 @@
-import Metashape as ms
-import logging
-from common.config import inject, get_variable
-import os
-from common.utils import TaskName
 import json
+import logging
+import os
+
+import Metashape as ms
+from common.config import inject
 from common.helpers import notify_task_completion
 
+from dags.lib.metashape import with_licence
+
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
     read_params=[
-        "country_code", 
-        "structure_code", 
+        "country_code",
+        "structure_code",
         "site_code",
-        "organization_code", 
+        "organization_code",
         "survey_code",
-        "nas_folder_path", 
+        "nas_folder_path",
         "s3_location_bucket"
     ],
     method="GET"
 )
+@with_licence
 def create_metashape_project(**context):
     task_instance = context.get('task_instance') or context.get('ti')
     task_name = task_instance.task_id
@@ -35,8 +39,8 @@ def create_metashape_project(**context):
         site_code = context.get("site_code")
         organization_code = context.get("organization_code")
         survey_code = context.get("survey_code")
-        nas_root_path = get_variable("nas_root_path")
-        windows_root_path = get_variable("windows_nas_root_path")
+        nas_root_path = context.get("nas_root_path")
+
         nas_folder_path = context.get("nas_folder_path")
         s3_location_bucket = context.get("s3_location_bucket")
 
@@ -74,15 +78,14 @@ def create_metashape_project(**context):
         workflow_id = context["dag_run"].conf.get("workflowId")
         if not workflow_id:
             raise Exception("workflowId not found in dag_run.conf")
-        
-        windows_project_path = os.path.join(project_dir, f"{project_name}.psx").replace(nas_root_path, windows_root_path).replace(
-            "/", "\\")
 
-        payload={
-                    "project_code": project_code,
-                    "project_path": project_dir,
-                    "windows_project_path": windows_project_path,
-                    "project_name": project_name
+        windows_project_path = os.path.join(project_dir, f"{project_name}.psx")
+
+        payload = {
+            "project_code": project_code,
+            "project_path": project_dir,
+            "windows_project_path": windows_project_path,
+            "project_name": project_name
         }
 
         logger.info(f"[DEBUG] JSON payload: {json.dumps(payload)}")
@@ -100,7 +103,7 @@ def create_metashape_project(**context):
 
     except Exception as e:
         logger.error(f"[{task_name}] Task failed create metashape project step: {type(e).__name__} - {str(e)}")
-        #workflow_id = context.get("dag_run", {}).get("conf", {}).get("workflowId", "unknown")
+        # workflow_id = context.get("dag_run", {}).get("conf", {}).get("workflowId", "unknown")
 
         error_payload = {
             "workflowId": workflow_id,

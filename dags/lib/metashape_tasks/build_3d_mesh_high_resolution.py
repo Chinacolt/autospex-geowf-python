@@ -5,6 +5,8 @@ import json
 from common.config import inject, get_variable
 from common.helpers import notify_task_completion
 
+from dags.lib.metashape import with_licence
+
 logger = logging.getLogger(__name__)
 
 @inject(
@@ -30,9 +32,9 @@ def build_3d_mesh_high_resolution(**context):
 
     try:
         
-        nas_root_path = get_variable("nas_root_path")
-        windows_root_path = get_variable("windows_nas_root_path")
-        metashape_server_ip = get_variable("METASHAPE_SERVER_IP")
+        nas_root_path = context.get("nas_root_path")
+        
+        metashape_server_ip = context.get("metashape_server_ip")
 
         logger.info(f"[{task_name}] Starting build_3d_mesh_high_resolution task with workflowId: {workflow_id}")
         chunk_label = context["chunk_label_HR"]
@@ -61,7 +63,7 @@ def build_3d_mesh_high_resolution(**context):
 
         logger.info(f"[DEBUG] Output Path, 3d mesh high resolution: {output_path}")
 
-        server_output_path = output_path.replace(nas_root_path, windows_root_path).replace("/", "\\")
+        server_output_path = output_path
         logger.info(f"[DEBUG] Server-side output path for 3d mesh high resolution: {server_output_path}")
 
         # Daha önceki batch varsa iptal et
@@ -120,8 +122,7 @@ def build_3d_mesh_high_resolution(**context):
         client = Metashape.NetworkClient()
         client.connect(metashape_server_ip)
 
-        relative_path = os.path.join(project_path, f"{project_name}.psx").replace(nas_root_path, windows_root_path).replace(
-            "/", "\\")
+        relative_path = os.path.join(project_path, f"{project_name}.psx")
         logger.info(f"[DEBUG] Relative project path for batch: {relative_path}")
 
         batch_id = client.createBatch(relative_path, [build_depth_maps_task.toNetworkTask(chunk), build_model_task.toNetworkTask(chunk), build_uv_task.toNetworkTask(chunk), build_texture_task.toNetworkTask(chunk), export_model_task.toNetworkTask(chunk)])

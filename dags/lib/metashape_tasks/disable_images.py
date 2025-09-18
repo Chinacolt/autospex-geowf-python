@@ -5,6 +5,8 @@ import json
 from common.config import inject, get_variable
 from common.helpers import notify_task_completion
 
+from dags.lib.metashape import with_licence
+
 logger = logging.getLogger(__name__)
 
 @inject(
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
     ],
     method="GET"
 )
+@with_licence
 def disable_images(**context):
     task_instance = context.get('task_instance') or context.get('ti')
     task_name = task_instance.task_id

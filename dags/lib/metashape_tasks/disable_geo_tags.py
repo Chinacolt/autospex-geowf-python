@@ -5,6 +5,8 @@ import json
 from common.config import inject, get_variable
 from common.helpers import notify_task_completion
 
+from dags.lib.metashape import with_licence
+
 logger = logging.getLogger(__name__)
 
 @inject(
@@ -12,6 +14,7 @@ logger = logging.getLogger(__name__)
     read_params=["project_path", "project_name", "chunk_label"],
     method="GET"
 )
+@with_licence
 def disable_geo_tags(**context):
     task_instance = context.get('task_instance') or context.get('ti')
     task_name = task_instance.task_id
