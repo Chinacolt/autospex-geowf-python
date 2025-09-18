@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DEFAULT_HOST = "0.0.0.0"
-DEFAULT_PORT = 80
+DEFAULT_PORT = 5840
 DEFAULT_MOUNT_PATH = "/data"
 DEFAULT_DATA_PATH_TEMPLATE = "/data/geowf/metashape/{uniq_id}"
 DEFAULT_SERVER_FQDN_TEMPLATE = "metashape-{uniq_id}-server.{r53_hostname}"
