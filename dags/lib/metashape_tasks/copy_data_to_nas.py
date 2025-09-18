@@ -1,6 +1,7 @@
 import json
 import logging
 import threading
+import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -49,10 +50,13 @@ def copy_data_to_nas(**context):
 
         def download_one(item):
             thread_name = threading.current_thread().name
+            logger.info(f"nas_root_path={nas_root_path}")
+            logger.info(item)
             try:
                 s3_key = f"{item['folder_id']}{item['file_name']}"
                 dest_path = Path(nas_root_path) / item["nas_folder_path"] / item["s3_location_bucket"] / item[
                     "folder_id"] / item["file_name"]
+                logger.info(f"dest_path={dest_path}")
 
                 if dest_path.is_file():
                     s3_object = hook.get_key(bucket_name=item["s3_location_bucket"], key=s3_key)
@@ -80,6 +84,7 @@ def copy_data_to_nas(**context):
                 return {"status": "success", "file": str(dest_path), "thread": thread_name}
 
             except Exception as e:
+                logger.error(traceback.format_exc())
                 logger.error(
                     f"\n[THREAD: {thread_name}] Failed to download file\n"
                     f"→ JSON: {json.dumps(item, indent=2)}\n"
