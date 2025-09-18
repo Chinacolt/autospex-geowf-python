@@ -101,7 +101,7 @@ def get_chunk(doc: Metashape.Document, label: str):
 def with_licence(f: Callable) -> Any:
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
-        activate("APSSA-LEL4T-OB8T8-E3BJR-ANXUO")
+        # activate("APSSA-LEL4T-OB8T8-E3BJR-ANXUO")
         try:
             return f(*args, **kwargs)
         finally:
