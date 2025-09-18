@@ -111,12 +111,7 @@ with DAG(
         return wait_wf_run_alignment(**context)
 
 
-    @task(task_id="review_alignment_and_georeferencing",
-          executor_config={
-              "cpu": 4096,
-              "memory": 8192
-          }
-          )
+    @task(task_id="review_alignment_and_georeferencing")
     def t_review_alignment_and_georeferencing(**context):
         return review_alignment_and_georeferencing(**context)
 
