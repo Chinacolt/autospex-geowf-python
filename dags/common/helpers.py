@@ -1,7 +1,10 @@
 import json
 import logging
+
 import requests
+
 from .config import get_keycloak_token, get_variable
+
 
 def notify_task_completion(workflow_id: str, task_name: str, payload: dict):
     try:
@@ -30,6 +33,7 @@ def notify_task_completion(workflow_id: str, task_name: str, payload: dict):
         logging.error(f"[ERROR] Failed to notify task completion: {str(e)}")
         raise
 
+
 def notify_task_failure(workflow_id: str, task_name: str, error_message: str):
     try:
         base_url = get_variable("WORKFLOW_API_URL_TEMPLATE")
@@ -48,15 +52,12 @@ def notify_task_failure(workflow_id: str, task_name: str, error_message: str):
             "error": error_message
         }
 
-        
-
         logging.info(f"[DEBUG] Sending task failure notification to: {target_url}")
         logging.info(f"[DEBUG] Payload: {json.dumps(payload)}")
 
         response = requests.put(target_url, headers=headers, json=payload)
 
         logging.info(f"[notify_task_failure] Response status code: {response.status_code}")
-
 
         logging.info(f"[DEBUG] Failure response: {response.status_code} - {response.text}")
         response.raise_for_status()

@@ -1,4 +1,5 @@
 import logging
+
 import requests
 from airflow.decorators import dag, task
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
@@ -11,6 +12,7 @@ default_args = {
     "depends_on_past": False,
 }
 
+
 @dag(
     dag_id="workflow_listener",
     default_args=default_args,
@@ -20,7 +22,6 @@ default_args = {
     tags=["listener"],
 )
 def workflow_listener():
-
     @task()
     def get_workflow_id() -> dict:
         logger = logging.getLogger("airflow.task")
@@ -73,5 +74,6 @@ def workflow_listener():
 
     workflow_id_payload = get_workflow_id()
     trigger_pipeline(workflow_id_payload)
+
 
 workflow_listener()

@@ -1,7 +1,7 @@
 import logging
-from datetime import datetime
 import os
 import subprocess
+from datetime import datetime
 
 from airflow.decorators import task, dag
 from airflow.models import Variable
@@ -37,8 +37,10 @@ def update_airflow_files():
             if airflow_home_folder:
                 logging.info("Using environment variable AIRFLOW__CORE__DAGS_FOLDER: %s", airflow_home_folder)
             else:
-                logging.error("Variable 'airflow_dags_folder_path' is not set and environment variable AIRFLOW__CORE__DAGS_FOLDER is not set.")
-                raise ValueError("Variable 'airflow_dags_folder_path' is not set. Please set it to the path of your Airflow DAGs folder.")
+                logging.error(
+                    "Variable 'airflow_dags_folder_path' is not set and environment variable AIRFLOW__CORE__DAGS_FOLDER is not set.")
+                raise ValueError(
+                    "Variable 'airflow_dags_folder_path' is not set. Please set it to the path of your Airflow DAGs folder.")
 
         logging.info("CWD: %s", airflow_home_folder)
         logging.info("Target git branch: %s", git_branch)
