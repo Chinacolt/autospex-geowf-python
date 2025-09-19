@@ -19,7 +19,7 @@ default_args = {
     schedule_interval=None,
     max_active_runs=1,
     catchup=False,
-    render_template_as_native_obj=True,
+    render_template_as_native_obj=True
 )
 def update_airflow_files():
     @task

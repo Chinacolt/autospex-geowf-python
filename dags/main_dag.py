@@ -40,7 +40,15 @@ with DAG(
         on_failure_callback=task_failure_callback,
         tags=["metashape"],
 ) as dag:
-    @task(task_id="create_cluster")
+    @task(
+        task_id="create_cluster",
+        executor_config={
+            "overrides": {
+                "cpu": "256",
+                "memory": "512"
+            }
+        }
+    )
     def t_create_cluster(**context):
         task_instance = context.get("task_instance") or context.get("ti")
         dag_run = context.get("dag_run")
@@ -76,102 +84,222 @@ with DAG(
             raise
 
 
-    @task(task_id="copy_data_to_nas")
+    @task(task_id="copy_data_to_nas",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_copy_data_to_nas(**context):
         return copy_data_to_nas(**context)
 
 
-    @task(task_id="create_metashape_project")
+    @task(task_id="create_metashape_project",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_create_metashape_project(**context):
         return create_metashape_project(**context)
 
 
-    @task(task_id="create_data_chunks", on_failure_callback=task_failure_callback)
+    @task(task_id="create_data_chunks", on_failure_callback=task_failure_callback,
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_create_chunk(**context):
         return create_data_chunks_hl_hr(**context)
 
 
-    @task(task_id="disable_images")
+    @task(task_id="disable_images",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_disable_images(**context):
         return disable_images(**context)
 
 
-    @task(task_id="disable_geo_tags")
+    @task(task_id="disable_geo_tags",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_disable_geo_tags(**context):
         return disable_geo_tags(**context)
 
 
-    @task(task_id="run_alignment")
+    @task(task_id="run_alignment",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_run_alignment(**context):
         return run_alignment(**context)
 
 
-    @task(task_id="wait_wf_run_alignment")
+    @task(task_id="wait_wf_run_alignment",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_wait_wf_run_alignment(**context):
         return wait_wf_run_alignment(**context)
 
 
-    @task(task_id="review_alignment_and_georeferencing")
+    @task(task_id="review_alignment_and_georeferencing",
+          executor_config={
+              "overrides": {
+                  "cpu": "256",
+                  "memory": "512"
+              }
+          })
     def t_review_alignment_and_georeferencing(**context):
         return review_alignment_and_georeferencing(**context)
 
 
-    @task(task_id="enable_geo_tags")
+    @task(task_id="enable_geo_tags",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_enable_geo_tags(**context):
         return enable_geo_tags(**context)
 
 
-    @task(task_id="run_tie_point_removal_reiteration")
+    @task(task_id="run_tie_point_removal_reiteration",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_run_tie_point_removal_reiteration(**context):
         return run_tie_point_removal_reiteration(**context)
 
 
-    @task(task_id="review_tie_point_removal_result")
+    @task(task_id="review_tie_point_removal_result",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_review_tie_point_removal_result(**context):
         return review_tie_point_removal_result(**context)
 
 
-    @task(task_id="duplicate_chunk_block_with_hl")
+    @task(task_id="duplicate_chunk_block_with_hl",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_duplicate_chunk_block_with_hl(**context):
         return duplicate_chunk_block_with_hl(**context)
 
 
-    @task(task_id="duplicate_chunk_block_with_hr")
+    @task(task_id="duplicate_chunk_block_with_hr",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_duplicate_chunk_block_with_hr(**context):
         return duplicate_chunk_block_with_hr(**context)
 
 
-    @task(task_id="export_camera_positions_high_level")
+    @task(task_id="export_camera_positions_high_level",
+          executor_config={
+              "overrides": {
+                  "cpu": "2048",
+                  "memory": "4096"
+              }
+          })
     def t_export_camera_positions_high_level(**context):
         return export_camera_positions_high_level(**context)
 
 
-    @task(task_id="export_camera_positions_high_resolution")
+    @task(task_id="export_camera_positions_high_resolution",
+          executor_config={
+              "overrides": {
+                  "cpu": "8192",
+                  "memory": "32768"
+              }
+          })
     def t_export_camera_positions_high_resolution(**context):
         return export_camera_positions_high_resolution(**context)
 
 
-    @task(task_id="build_3d_mesh_high_level")
+    @task(task_id="build_3d_mesh_high_level",
+          executor_config={
+              "overrides": {
+                  "cpu": "256",
+                  "memory": "512"
+              }
+          })
     def t_build_3d_mesh_high_level(**context):
         return build_3d_mesh_high_level(**context)
 
 
-    @task(task_id="wait_wf_3d_mesh_hl")
+    @task(task_id="wait_wf_3d_mesh_hl",
+          executor_config={
+              "overrides": {
+                  "cpu": "256",
+                  "memory": "512"
+              }
+          })
     def t_wait_wf_3d_mesh_hl(**context):
         return wait_wf_3d_mesh_hl(**context)
 
 
-    @task(task_id="build_3d_mesh_high_resolution")
+    @task(task_id="build_3d_mesh_high_resolution",
+          executor_config={
+              "overrides": {
+                  "cpu": "256",
+                  "memory": "512"
+              }
+          })
     def t_build_3d_mesh_high_resolution(**context):
         return build_3d_mesh_high_resolution(**context)
 
 
-    @task(task_id="wait_wf_3d_mesh_hr")
+    @task(task_id="wait_wf_3d_mesh_hr",
+          executor_config={
+              "overrides": {
+                  "cpu": "256",
+                  "memory": "512"
+              }
+          })
     def t_wait_wf_3d_mesh_hr(**context):
         return wait_wf_3d_mesh_hr(**context)
 
 
-    @task(task_id="destroy_cluster")
+    @task(task_id="destroy_cluster",
+          executor_config={
+              "overrides": {
+                  "cpu": "256",
+                  "memory": "512"
+              }
+          })
     def t_destroy_cluster(**context):
         dag_run = context.get("dag_run")
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
