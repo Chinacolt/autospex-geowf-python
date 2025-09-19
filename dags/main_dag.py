@@ -171,11 +171,12 @@ with DAG(
         return wait_wf_3d_mesh_hr(**context)
 
 
-    # @task(task_id="destroy_cluster")
-    # def t_destroy_cluster(**context):
-    #     dag_run = context.get("dag_run")
-    #     workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
-    #     metashape_manager.destroy_cluster(uniq_id=workflow_id)
+    @task(task_id="destroy_cluster")
+    def t_destroy_cluster(**context):
+        dag_run = context.get("dag_run")
+        workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
+        metashape_manager.destroy_cluster(uniq_id=workflow_id)
+
 
     (
             t_create_cluster()
@@ -198,4 +199,5 @@ with DAG(
             >> t_wait_wf_3d_mesh_hl()
             >> t_build_3d_mesh_high_resolution()
             >> t_wait_wf_3d_mesh_hr()
+            >> t_destroy_cluster()
     )
