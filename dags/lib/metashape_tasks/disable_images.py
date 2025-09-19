@@ -18,7 +18,9 @@ logger = logging.getLogger(__name__)
         "nas_root_path",
         "nas_folder_path",
         "chunk_label",
-        "camera_group_labels", "metashape_server_ip", "nas_root_path"
+        "camera_group_labels",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )

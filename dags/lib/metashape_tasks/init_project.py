@@ -18,7 +18,9 @@ logger = logging.getLogger(__name__)
         "organization_code",
         "survey_code",
         "nas_folder_path",
-        "s3_location_bucket", "metashape_server_ip", "nas_root_path"
+        "s3_location_bucket",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )

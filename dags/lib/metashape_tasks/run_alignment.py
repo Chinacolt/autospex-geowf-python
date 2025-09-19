@@ -7,8 +7,6 @@ from common.config import inject
 from common.helpers import notify_task_completion
 from common.utils import get_accuracy_value
 
-from lib.metashape import with_licence
-
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +24,9 @@ logger = logging.getLogger(__name__)
         "accuracy",
         "guided_image_matching",
         "reset_current_alignment",
-        "exclude_stationary_tie_points","metashape_server_ip", "nas_root_path"
+        "exclude_stationary_tie_points",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )

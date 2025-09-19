@@ -1,13 +1,13 @@
-import Metashape
-import os
-import logging
 import json
-from common.config import inject, get_variable
+import logging
+import os
+
+import Metashape
+from common.config import inject
 from common.helpers import notify_task_completion
 
-from lib.metashape import with_licence
-
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
@@ -16,12 +16,13 @@ logger = logging.getLogger(__name__)
         "project_name",
         "chunk_label_HR",
         "project_code",
-        "mesh_hr_batch_id","metashape_server_ip", "nas_root_path"
+        "mesh_hr_batch_id",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )
 def build_3d_mesh_high_resolution(**context):
-
     task_instance = context.get("task_instance") or context.get("ti")
     task_name = task_instance.task_id
     dag_run = context.get("dag_run")
@@ -31,9 +32,9 @@ def build_3d_mesh_high_resolution(**context):
     mesh_hr_batch_id = context.get("mesh_hr_batch_id")
 
     try:
-        
+
         nas_root_path = context.get("nas_root_path")
-        
+
         metashape_server_ip = context.get("metashape_server_ip")
 
         logger.info(f"[{task_name}] Starting build_3d_mesh_high_resolution task with workflowId: {workflow_id}")
@@ -90,7 +91,7 @@ def build_3d_mesh_high_resolution(**context):
         build_model_task.face_count = Metashape.FaceCount.HighFaceCount
         build_model_task.interpolation = Metashape.Interpolation.EnabledInterpolation
         build_model_task.vertex_colors = True
-        build_model_task.keep_depth = True 
+        build_model_task.keep_depth = True
         build_model_task.subdivide_task = True
 
         # 3. BuildUV Task
@@ -102,11 +103,11 @@ def build_3d_mesh_high_resolution(**context):
         # 4. BuildTexture Task
         build_texture_task = Metashape.Tasks.BuildTexture()
         build_texture_task.blending_mode = Metashape.BlendingMode.MosaicBlending
-        build_texture_task.texture_size = 8192 # Should generally match the texture_size set in build_uv_task
+        build_texture_task.texture_size = 8192  # Should generally match the texture_size set in build_uv_task
         build_texture_task.fill_holes = True
         build_texture_task.ghosting_filter = True
         build_texture_task.texture_type = Metashape.Model.TextureType.DiffuseMap
-        
+
         # 5. ExportModel Task
         export_model_task = Metashape.Tasks.ExportModel()
         export_model_task.path = server_output_path
@@ -125,7 +126,11 @@ def build_3d_mesh_high_resolution(**context):
         relative_path = os.path.join(project_path, f"{project_name}.psx")
         logger.info(f"[DEBUG] Relative project path for batch: {relative_path}")
 
-        batch_id = client.createBatch(relative_path, [build_depth_maps_task.toNetworkTask(chunk), build_model_task.toNetworkTask(chunk), build_uv_task.toNetworkTask(chunk), build_texture_task.toNetworkTask(chunk), export_model_task.toNetworkTask(chunk)])
+        batch_id = client.createBatch(relative_path, [build_depth_maps_task.toNetworkTask(chunk),
+                                                      build_model_task.toNetworkTask(chunk),
+                                                      build_uv_task.toNetworkTask(chunk),
+                                                      build_texture_task.toNetworkTask(chunk),
+                                                      export_model_task.toNetworkTask(chunk)])
         client.setBatchPaused(batch_id, False)
         logger.info(f"[SUCCESS] Batch submitted and running. ID: {batch_id}")
 
@@ -138,8 +143,7 @@ def build_3d_mesh_high_resolution(**context):
         if not workflow_id:
             raise Exception("workflowId not found in dag_run.conf")
 
-
-        payload={
+        payload = {
             "mesh_hr_output_path": server_output_path,
             "mesh_hr_batch_id": batch_id
         }
@@ -153,7 +157,8 @@ def build_3d_mesh_high_resolution(**context):
                 task_name="wait_wf_3d_mesh_hr",
                 payload=payload
             )
-            logger.info(f"[{task_name}] Task completed successfully. Build 3d mesh high resolution {server_output_path}")
+            logger.info(
+                f"[{task_name}] Task completed successfully. Build 3d mesh high resolution {server_output_path}")
         except Exception as notify_error:
             logger.error(f"[{task_name}] Notification failed: {type(notify_error).__name__} - {str(notify_error)}")
             raise notify_error
