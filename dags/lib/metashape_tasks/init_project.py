@@ -5,7 +5,6 @@ import os
 import Metashape as ms
 from common.config import inject
 from common.helpers import notify_task_completion
-from lib.metashape import with_licence
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,6 @@ logger = logging.getLogger(__name__)
     ],
     method="GET"
 )
-@with_licence
 def create_metashape_project(**context):
     task_instance = context.get('task_instance') or context.get('ti')
     task_name = task_instance.task_id

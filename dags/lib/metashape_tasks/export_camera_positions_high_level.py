@@ -1,12 +1,12 @@
-import Metashape
-import os
 import logging
+import os
+
+import Metashape
 from common.config import inject
 from common.helpers import notify_task_completion
 
-from lib.metashape import with_licence
-
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
@@ -14,13 +14,11 @@ logger = logging.getLogger(__name__)
         "project_path",
         "project_name",
         "chunk_label_HL",
-        "project_code","metashape_server_ip", "nas_root_path"
+        "project_code", "metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )
-@with_licence
 def export_camera_positions_high_level(**context):
-
     task_instance = context.get("task_instance") or context.get("ti")
     task_name = task_instance.task_id
 
@@ -28,7 +26,6 @@ def export_camera_positions_high_level(**context):
         dag_run = context.get("dag_run")
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
         logger.info(f"[{task_name}] Starting export_camera_positions_high_level task with workflowId: {workflow_id}")
-
 
         project_path = context["project_path"]
         project_name = context["project_name"]
@@ -73,17 +70,16 @@ def export_camera_positions_high_level(**context):
             logger.info(f"[DEBUG] Received workflowId from triggering DAG: {workflow_id}")
         except Exception as e:
             raise Exception(f"[ERROR] workflowId could not be fetched from context: {e}")
-        
+
         if not workflow_id:
             raise Exception("workflowId not found in dag_run.conf")
 
-        
-        payload={
+        payload = {
             "hl_output_path": output_path
         }
 
         try:
-            
+
             notify_task_completion(
                 workflow_id=workflow_id,
                 task_name=task_name,

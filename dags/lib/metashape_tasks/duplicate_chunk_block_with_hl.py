@@ -1,24 +1,23 @@
-import Metashape
-import os
-import logging
 import json
+import logging
+import os
+
+import Metashape
 from common.config import inject
 from common.helpers import notify_task_completion
 
-from lib.metashape import with_licence
-
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
     read_params=[
         "project_path",
         "project_name",
-        "chunk_label","metashape_server_ip", "nas_root_path"
+        "chunk_label", "metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )
-@with_licence
 def duplicate_chunk_block_with_hl(**context):
     task_instance = context.get("task_instance") or context.get("ti")
     task_name = task_instance.task_id
@@ -64,9 +63,9 @@ def duplicate_chunk_block_with_hl(**context):
         payload = {
             "chunk_label_HL": duplicated_chunk.label,
         }
-        
+
         logger.info(f"[{task_name}] Payload prepared for notification: {json.dumps(payload, indent=2)}")
-        
+
         try:
             notify_task_completion(
                 workflow_id=workflow_id,

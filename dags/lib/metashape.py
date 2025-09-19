@@ -1,6 +1,3 @@
-import functools
-from typing import Callable, Any
-
 import Metashape
 
 
@@ -96,18 +93,6 @@ def get_chunk(doc: Metashape.Document, label: str):
         if chunk.label == label:
             return chunk
     return None
-
-
-def with_licence(f: Callable) -> Any:
-    @functools.wraps(f)
-    def wrapper(*args, **kwargs):
-        # activate("APSSA-LEL4T-OB8T8-E3BJR-ANXUO")
-        try:
-            return f(*args, **kwargs)
-        finally:
-            deactivate()
-
-    return wrapper
 
 
 def print_hi():

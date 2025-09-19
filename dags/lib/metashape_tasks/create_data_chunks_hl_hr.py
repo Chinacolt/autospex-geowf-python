@@ -7,8 +7,6 @@ from Metashape import Metashape as ms
 from common.config import inject
 from common.helpers import notify_task_completion
 
-from lib.metashape import with_licence
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,11 +23,10 @@ def normalize_section_name(name: str) -> str:
         "__image_group_paths",
         "survey_code",
         "nas_folder_path",
-        "s3_location_bucket","metashape_server_ip", "nas_root_path"
+        "s3_location_bucket", "metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )
-@with_licence
 def create_data_chunks_hl_hr(**context):
     task_instance = context.get("task_instance") or context.get("ti")
     task_name = task_instance.task_id

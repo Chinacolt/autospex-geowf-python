@@ -1,21 +1,18 @@
-import json
 import logging
 import time
-from common.config import inject, re_inject_param
-from common.config import inject
-from common.helpers import notify_task_completion
 
-from lib.metashape import with_licence
+from common.config import inject
+from common.config import re_inject_param
+from common.helpers import notify_task_completion
 
 logger = logging.getLogger(__name__)
 
 
 @inject(
     workflow_conf_key="workflowId",
-    read_params=["review_tie_point_removal_result","metashape_server_ip", "nas_root_path"],
+    read_params=["review_tie_point_removal_result", "metashape_server_ip", "nas_root_path"],
     method="GET"
 )
-@with_licence
 def review_tie_point_removal_result(**context):
     logger = logging.getLogger("airflow.task")
     task_instance = context.get("task_instance") or context.get("ti")
@@ -35,7 +32,7 @@ def review_tie_point_removal_result(**context):
         param_val = str(response).lower() != "false"
 
         logger.info(f"[{task_name}] Attempt {attempt + 1}: review_tie_point_removal_result = {param_val}")
-        
+
         success_payload = {
             "review_tie_point_removal_result_message": "Completed review tie point removal result."
         }
@@ -52,7 +49,3 @@ def review_tie_point_removal_result(**context):
         logger.info(f"[{task_name}] Not met. Sleeping 10 seconds...")
         time.sleep(10)
         attempt += 1
-
-
-
-

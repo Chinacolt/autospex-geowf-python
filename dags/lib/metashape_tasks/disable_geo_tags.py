@@ -1,20 +1,19 @@
-import Metashape
-import os
-import logging
 import json
-from common.config import inject, get_variable
-from common.helpers import notify_task_completion
+import logging
+import os
 
-from lib.metashape import with_licence
+import Metashape
+from common.config import inject
+from common.helpers import notify_task_completion
 
 logger = logging.getLogger(__name__)
 
+
 @inject(
     workflow_conf_key="workflowId",
-    read_params=["project_path", "project_name", "chunk_label","metashape_server_ip", "nas_root_path"],
+    read_params=["project_path", "project_name", "chunk_label", "metashape_server_ip", "nas_root_path"],
     method="GET"
 )
-@with_licence
 def disable_geo_tags(**context):
     task_instance = context.get('task_instance') or context.get('ti')
     task_name = task_instance.task_id
@@ -23,7 +22,6 @@ def disable_geo_tags(**context):
         dag_run = context.get("dag_run")
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
         logger.info(f"[{task_name}] Starting disable_geo_tags task with workflowId: {workflow_id}")
-
 
         project_path = context["project_path"]
         project_name = context["project_name"]

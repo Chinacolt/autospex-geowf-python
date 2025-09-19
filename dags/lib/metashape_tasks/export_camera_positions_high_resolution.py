@@ -1,13 +1,13 @@
-import Metashape
-import os
-import logging
-from common.config import inject
 import json
+import logging
+import os
+
+import Metashape
+from common.config import inject
 from common.helpers import notify_task_completion
 
-from lib.metashape import with_licence
-
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
@@ -15,11 +15,10 @@ logger = logging.getLogger(__name__)
         "project_path",
         "project_name",
         "chunk_label_HR",
-        "project_code","metashape_server_ip", "nas_root_path"
+        "project_code", "metashape_server_ip", "nas_root_path"
     ],
     method="GET"
 )
-@with_licence
 def export_camera_positions_high_resolution(**context):
     task_instance = context.get("task_instance") or context.get("ti")
     task_name = task_instance.task_id
@@ -27,7 +26,8 @@ def export_camera_positions_high_resolution(**context):
     try:
         dag_run = context.get("dag_run")
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
-        logger.info(f"[{task_name}] Starting export_camera_positions_high_resolution task with workflowId: {workflow_id}")
+        logger.info(
+            f"[{task_name}] Starting export_camera_positions_high_resolution task with workflowId: {workflow_id}")
 
         project_path = context["project_path"]
         project_name = context["project_name"]
@@ -56,7 +56,6 @@ def export_camera_positions_high_resolution(**context):
 
         logger.info(f"[DEBUG] Output Path, Exporting camera positions to: {output_path}")
 
-
         chunk.exportCameras(
             path=output_path,
             format=Metashape.CamerasFormat.CamerasFormatBlocksExchange,
@@ -64,7 +63,7 @@ def export_camera_positions_high_resolution(**context):
             save_markers=True
         )
 
-        payload={
+        payload = {
             "hr_output_path": output_path
         }
 
