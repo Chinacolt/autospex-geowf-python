@@ -54,6 +54,8 @@ with DAG(
         dag_run = context.get("dag_run")
         task_name = task_instance.task_id
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
+        if workflow_id is None:
+            raise ValueError("workflowId is required!")
 
         server_instance_type = "c5.large"
         worker_instance_type = "g6.xlarge"
