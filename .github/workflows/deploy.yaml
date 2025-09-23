@@ -1,0 +1,170 @@
+name: Deploy Airflow DAGs
+run-name: Deploy to ${{ inputs.deployment-environment }} for ${{ github.ref }} by @${{ github.actor }}
+on:
+  workflow_dispatch:
+    inputs:
+      deployment-environment:
+        description: Environment to Deploy
+        type: choice
+        options:
+          - Staging
+          - Production
+        default: Staging
+
+env:
+  BUILD_BASE: 'false' # Set to 'true' to rebuild the base image, otherwise it will be pulled from ECR
+  WAITING_ROOM_ECR_REPOSITORY_URL: '341118546525.dkr.ecr.us-east-1.amazonaws.com/cicd-package-waiting-room'
+
+jobs:
+  Build-Base-And-Common-Docker-Images:
+    name: Build-Base-And-Common-Docker-Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "us-east-1"
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Build Airflow Base Image
+        if: env.BUILD_BASE == 'true'
+        run: |
+          cd infrastructure/docker/airflow-base
+          docker build --platform linux/amd64 -t autospex-airflow-base .
+          docker tag autospex-airflow-base ${{ env.WAITING_ROOM_ECR_REPOSITORY_URL }}:airflow-base
+          docker push ${{ env.WAITING_ROOM_ECR_REPOSITORY_URL }}:airflow-base
+          cd -
+      - name: Pull Airflow Base Image
+        run: |
+          docker pull ${{ env.WAITING_ROOM_ECR_REPOSITORY_URL }}:airflow-base
+          docker tag ${{ env.WAITING_ROOM_ECR_REPOSITORY_URL }}:airflow-base autospex-airflow-base
+      - name: Build Airflow Common Image
+        run: |
+          cp -Rf dags infrastructure/docker/airflow-common/dags
+          cd infrastructure/docker/airflow-common
+          docker build --platform linux/amd64 -t autospex-airflow-common .
+          docker tag autospex-airflow-common ${{ env.WAITING_ROOM_ECR_REPOSITORY_URL }}:airflow-common
+          docker push ${{ env.WAITING_ROOM_ECR_REPOSITORY_URL }}:airflow-common
+          cd -
+      - uses: ./.github/workflows/composite/aws-metadata
+        name: composite-action:aws-metadata
+        id: metadata
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          unit-name: "airflow-scheduler"
+          selected-environments: ${{ inputs.deployment-environment }}
+
+    outputs:
+      targets: ${{ steps.metadata.outputs.targets }}
+
+  Deploy:
+    strategy:
+      matrix:
+        target: ${{fromJson(needs.Build-Base-And-Common-Docker-Images.outputs.targets)}}
+        service: [ executor, scheduler, web, triggerer ]
+    name: Deploy - ${{ matrix.target.region_name }} - ${{ matrix.target.environment }} - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [ Build-Base-And-Common-Docker-Images ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare Environment
+        shell: bash
+        run: |
+          UNIT_NAME="${{ toJson(matrix.target.unit_name) }}"
+          ACCOUNT_ID="${{ toJson(matrix.target.account_id) }}"
+          REPOSITORY="${{ toJson(matrix.target.repository) }}"
+          CLUSTER_NAME="${{ toJson(matrix.target.cluster_name) }}"
+          SERVICE_NAME="${{ toJson(matrix.target.service_name) }}"
+          ROLE="${{ toJson(matrix.target.role) }}"
+          REGION="${{ toJson(matrix.target.region) }}"
+          ENVIRONMENT="${{ toJson(matrix.target.environment) }}"
+          REGION_NAME="${{ toJson(matrix.target.region_name) }}"
+          SERVICE="${{ toJson(matrix.service) }}"
+          echo "UNIT_NAME=$UNIT_NAME"
+          echo "ACCOUNT_ID=$ACCOUNT_ID"
+          echo "REPOSITORY=$REPOSITORY"
+          echo "CLUSTER_NAME=$CLUSTER_NAME"
+          echo "SERVICE_NAME=$SERVICE_NAME"
+          echo "ROLE=$ROLE"
+          echo "REGION=$REGION"
+          echo "ENVIRONMENT=$ENVIRONMENT"
+          echo "REGION_NAME=$REGION_NAME"
+          echo "SERVICE=$SERVICE"
+          # my_repo is replace of scheduler-service to SERVICE
+          if [ "$SERVICE" == "executor" ]; then
+            DEPLOY=false
+            MY_SERVICE=$SERVICE
+            MY_REPO=$(echo $REPOSITORY | sed "s/scheduler-service/airflow-executor-standalone-task/g")
+          else
+            DEPLOY=true
+            MY_SERVICE=$(echo $SERVICE_NAME | sed "s/scheduler/$SERVICE/g")
+            MY_REPO=$(echo $REPOSITORY | sed "s/scheduler-service/$SERVICE-service/g")
+          fi
+          echo "DEPLOY=$DEPLOY"
+          echo "MY_REPO=$MY_REPO"
+          echo "MY_SERVICE=$MY_SERVICE"
+          
+          
+          echo "UNIT_NAME=$UNIT_NAME" >> $GITHUB_ENV
+          echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
+          echo "REPOSITORY=$REPOSITORY" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=$CLUSTER_NAME" >> $GITHUB_ENV
+          echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_ENV
+          echo "ROLE=$ROLE" >> $GITHUB_ENV
+          echo "REGION=$REGION" >> $GITHUB_ENV
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+          echo "REGION_NAME=$REGION_NAME" >> $GITHUB_ENV
+          echo "SERVICE=$SERVICE" >> $GITHUB_ENV
+          echo "DEPLOY=$DEPLOY" >> $GITHUB_ENV
+          echo "MY_REPO=$MY_REPO" >> $GITHUB_ENV
+          echo "MY_SERVICE=$MY_SERVICE" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "us-east-1"
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Pull Airflow Base Image
+        run: |
+          docker pull ${{ env.WAITING_ROOM_ECR_REPOSITORY_URL }}:airflow-common
+          docker tag ${{ env.WAITING_ROOM_ECR_REPOSITORY_URL }}:airflow-common autospex-airflow-common
+      - name: Inject License File
+        if: env.SERVICE == 'executor'
+        run: |
+          echo ${{secrets.METASHAPE_LICENSE}} | base64 -d > infrastructure/docker/airflow-executor/license.lic
+      - name: Build Airflow Image
+        run: |
+          cd infrastructure/docker/airflow-${{ matrix.service }}
+          docker build --platform linux/amd64 -t autospex-airflow-${{ matrix.service }} .
+          docker tag autospex-airflow-${{ matrix.service }} $MY_REPO:latest
+      - uses: ./.github/workflows/composite/aws-ecr
+        id: service
+        name: composite-action:aws-ecr
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+          aws-role-name: ${{ env.ROLE }}
+      - name: Publish Airflow Image
+        run: |
+          docker push $MY_REPO:latest
+      - name: Deploy Airflow Service
+        if: env.DEPLOY == 'true'
+        run: |
+          aws ecs update-service --cluster $CLUSTER_NAME --service $MY_SERVICE --force-new-deployment
+
