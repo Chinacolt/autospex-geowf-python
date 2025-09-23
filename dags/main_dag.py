@@ -66,8 +66,6 @@ with DAG(
                                                                          worker_instance_type=worker_instance_type,
                                                                          worker_count=worker_count
                                                                          )
-        # task_instance.xcom_push(key="metashape_server_ip", value=server_fqdn)
-        # task_instance.xcom_push(key="nas_root_path", value=worker_data_path)
 
         payload = {
             "metashape_server_ip": server_fqdn,
