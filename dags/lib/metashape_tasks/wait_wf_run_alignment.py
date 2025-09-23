@@ -1,27 +1,28 @@
-import Metashape
 import logging
-
-from Metashape.Metashape import Tasks
-
-from common.config import inject, get_variable
-from common.helpers import notify_task_completion
 import time
 
+import Metashape
+from common.config import inject
+from common.helpers import notify_task_completion
+
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
     read_params=[
         'run_alignment_batch_id',
         "project_path",
-        "project_name"
+        "project_name",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )
 def wait_wf_run_alignment(**context):
     task_instance = context.get("task_instance") or context.get("ti")
     run_alignment_batch_id = context["run_alignment_batch_id"]
-    metashape_server_ip = get_variable("METASHAPE_SERVER_IP")
+    metashape_server_ip = context.get("metashape_server_ip")
 
     project_path = context.get("project_path")
     project_name = context.get("project_name")
@@ -32,7 +33,7 @@ def wait_wf_run_alignment(**context):
         client.connect(metashape_server_ip)
         while True:
             batch_info = client.batchInfo(run_alignment_batch_id)
-            
+
             print(f"Batch Info: {batch_info}")
             # IF completed, break the loop
             if batch_info['state'] == 'completed':
@@ -45,7 +46,7 @@ def wait_wf_run_alignment(**context):
                         payload={"run_alignment": "completed"}
                     )
                 except Exception as notify_error:
-                    logger.error(f"[ERROR] Failed to notify task completion: {str(notify_error)}")            
+                    logger.error(f"[ERROR] Failed to notify task completion: {str(notify_error)}")
                 break
             # 10 saniyede bir burada log basılıyordu performans açısından in progress statüsünde loglama kaldırıldı
             # elif batch_info['state'] in ['pending', 'queued', 'inprogress']:
@@ -56,7 +57,7 @@ def wait_wf_run_alignment(**context):
                 raise Exception(f"Batch processing failed or aborted with state: {batch_info['state']}")
             # Wait for a while before checking again
             time.sleep(60)
-        
+
     except Exception as e:
         logger.error(f"Error while waiting for batch completion: {str(e)}")
 

@@ -1,0 +1,116 @@
+name: 'Configure AWS credentials and Get metadata from SSM Parameter Store'
+description: 'Configure AWS credentials and Get metadata from SSM Parameter Store'
+inputs:
+  aws-access-key-id:
+    description: 'aws-access-key'
+    required: true
+  aws-secret-access-key:
+    description: 'aws-secret-access-key'
+    required: true
+  unit-name:
+    description: 'unit-name to get value'
+    required: true
+  selected-environments:
+    description: 'selected-environments'
+    required: true
+
+
+outputs:
+  targets:
+    description: "Unit Targets"
+    value: ${{ steps.metadata.outputs.targets }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{inputs.aws-access-key-id}}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: "us-east-1"
+
+    - name: Get And Expose Metadata
+      id: metadata
+      shell: bash
+      run: |
+        
+        export UNIT="${{ inputs.unit-name }}"
+        export SELECTED_ENVIRONMENTS="${{ inputs.selected-environments }}"
+        
+        METADATA=$(aws --region us-east-1 \
+          ssm get-parameters-by-path \
+          --path "/metadata" \
+          --recursive \
+          --no-cli-pager \
+          --output json)
+        
+        UNIT_METADATA=$(
+        python3 <<EOF
+        import json
+        
+        metadata=json.loads("""$METADATA""")
+        metadata = {x["Name"]:x["Value"] for x in metadata["Parameters"]}
+        
+        units = {}
+        
+        for k,v in metadata.items():
+          environment, unit_name, region_name = k.split("/")[2:5]
+        
+          environmental_targets = units.get(unit_name, {})
+          regional_targets = environmental_targets.get(environment, {})
+          target = regional_targets.get(region_name, {})
+
+          target["unit_name"] = unit_name
+          
+          if "account_id" in k:
+            target["account_id"] = v
+          elif "region" in k:
+            target["region"] = v
+          elif "iam_role" in k:
+            target["role"] = v
+          elif "repository/url" in k:
+            target["repository"] = v
+          elif "cluster/name" in k:
+            target["cluster_name"] = v
+          elif "service/name" in k:
+            target["service_name"] = v
+          elif "standalone_task/name" in k:
+            target["standalone_task_name"] = v
+          elif "bucket" in k:
+            target["bucket"] = v
+          elif "application/url" in k:
+            target["application_url"] = v
+          elif "api/url" in k:
+            target["api_url"] = v
+          elif "keycloak/client_name" in k:
+            target["keycloak_client_name"] = v
+          elif "keycloak/realm_url" in k:
+            target["keycloak_realm_url"] = v
+          elif "cloudfront/distribution/id" in k:
+            target["cloudfront_distribution_id"] = v
+          
+          regional_targets[region_name] = target
+          environmental_targets[environment] = regional_targets
+          units[unit_name] = environmental_targets
+        
+        unit_targets = units.get("$UNIT", {})
+        
+        targets = []
+        
+        for environment, regional_targets in unit_targets.items():
+          if environment.lower() not in "$SELECTED_ENVIRONMENTS".lower():
+            continue
+          for region_name, target in regional_targets.items():
+            target["environment"] = environment.title()
+            target["region_name"] = region_name.upper()
+            targets.append(target)
+        
+        targets = json.dumps(targets)
+        
+        print("targets={}".format(targets))
+        
+        EOF
+        )
+        
+        echo -e "$UNIT_METADATA" >> $GITHUB_OUTPUT
