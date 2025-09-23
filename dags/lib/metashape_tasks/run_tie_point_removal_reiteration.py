@@ -1,11 +1,13 @@
-import Metashape
-import os
-import logging
-from common.config import inject
 import json
+import logging
+import os
+
+import Metashape
+from common.config import inject
 from common.helpers import notify_task_completion
 
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
@@ -15,7 +17,9 @@ logger = logging.getLogger(__name__)
         "chunk_label",
         "reprojection_error_threshold",
         "reconstruction_uncertainty_threshold",
-        "projection_accuracy_threshold"
+        "projection_accuracy_threshold",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )
@@ -110,7 +114,7 @@ def run_tie_point_removal_reiteration(**context):
         logger.info(f"Final reprojection difference: {reproj_difference}")
 
         doc.save()
-       
+
         payload = {
             "first_reproj": first_reproj,
             "second_reproj": second_reproj,

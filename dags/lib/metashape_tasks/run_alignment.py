@@ -1,8 +1,9 @@
-import Metashape as ms
 import json
 import logging
 import os
-from common.config import inject, get_variable
+
+import Metashape as ms
+from common.config import inject
 from common.helpers import notify_task_completion
 from common.utils import get_accuracy_value
 
@@ -23,7 +24,9 @@ logger = logging.getLogger(__name__)
         "accuracy",
         "guided_image_matching",
         "reset_current_alignment",
-        "exclude_stationary_tie_points"
+        "exclude_stationary_tie_points",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )
@@ -36,8 +39,7 @@ def run_alignment(**context):
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
         logger.info(f"[{task_name}] Starting run_alignment task with workflowId: {workflow_id}")
 
-        nas_root_path = get_variable("nas_root_path")
-        windows_root_path = get_variable("windows_nas_root_path")
+        nas_root_path = context.get("nas_root_path")
 
         # Get Params
         project_path = context["project_path"]
@@ -55,7 +57,7 @@ def run_alignment(**context):
         logger.info("[run_alignment] project=%s | key/tie=%s/%s | accuracy=%s",
                     project_name, key_point_limit, tie_point_limit, accuracy)
 
-        metashape_server_ip = get_variable("METASHAPE_SERVER_IP")
+        metashape_server_ip = context.get("metashape_server_ip")
 
         # Daha önceki batch varsa iptal et
         run_alignment_batch_id = context.get("run_alignment_batch_id")
@@ -97,8 +99,7 @@ def run_alignment(**context):
         client = ms.NetworkClient()
         client.connect(metashape_server_ip)
 
-        relative_path = os.path.join(project_path, f"{project_name}.psx").replace(nas_root_path, windows_root_path).replace(
-            "/", "\\")
+        relative_path = os.path.join(project_path, f"{project_name}.psx")
         logger.info(f"[DEBUG] Relative project path for batch: {relative_path}")
 
         batch_id = client.createBatch(relative_path, [match_task.toNetworkTask(chunk), align_task.toNetworkTask(chunk)])

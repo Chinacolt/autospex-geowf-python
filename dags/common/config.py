@@ -1,20 +1,20 @@
+import json
+import logging
+import os
+from functools import wraps
+from pprint import pprint
+from typing import Any, Callable, TypeVar, List
+
+import requests
+from Metashape import Metashape as ms
 from airflow.exceptions import AirflowException
 from airflow.models import Variable
-import requests
-import logging
-from typing import Any, Callable, TypeVar, List
-from functools import wraps
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
-import json
-from Metashape import Metashape as ms
-import os
-
-
-from pprint import pprint
 
 T = TypeVar('T')
 logger = logging.getLogger("airflow.task")
+
 
 class APIConstants:
     DEFAULT_TIMEOUT = 30
@@ -94,6 +94,7 @@ def get_keycloak_token() -> str:
         logger.exception(f"[get_keycloak_token] Unexpected exception: {str(e)}")
         raise
 
+
 def inject(workflow_conf_key: str, read_params: List[str], method: str):
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
@@ -103,9 +104,12 @@ def inject(workflow_conf_key: str, read_params: List[str], method: str):
             logger.info(f"[{task_name}] inject decorator started.")
 
             try:
+                pprint(f"[{task_name}] Context before injection: {context}")
+
                 dag_run = context.get('dag_run')
                 if not dag_run:
-                    raise Exception(f"[{task_name}] Missing dag_run in context. This task must be triggered via TriggerDagRunOperator with conf.")
+                    raise Exception(
+                        f"[{task_name}] Missing dag_run in context. This task must be triggered via TriggerDagRunOperator with conf.")
 
                 dag_run_conf = getattr(dag_run, "conf", {})
                 logger.info(f"[{task_name}] dag_run.conf: {dag_run_conf}")
@@ -133,7 +137,7 @@ def inject(workflow_conf_key: str, read_params: List[str], method: str):
 
                 params = {}
                 if http_method == "GET" and read_params:
-                    params = { "parameters": read_params }
+                    params = {"parameters": read_params}
                     logger.info(f"[{task_name}] GET params: {params}")
 
                 data = {}
@@ -164,6 +168,7 @@ def inject(workflow_conf_key: str, read_params: List[str], method: str):
 
                 logger.info(f"[{task_name}] Successfully injected parameters: {read_params}")
                 pprint(f"[{task_name}] Context after injection: {context}")
+
                 return func(**context)
 
             except requests.exceptions.RequestException as e:
@@ -174,7 +179,9 @@ def inject(workflow_conf_key: str, read_params: List[str], method: str):
                 raise AirflowException(f"Unexpected error in {func.__name__}: {str(e)}")
 
         return wrapper
+
     return decorator
+
 
 def re_inject_param(workflow_id: str, task_name: str, param_name: str) -> Any:
     token = get_keycloak_token()

@@ -1,18 +1,22 @@
-import Metashape
-import os
-import logging
 import json
+import logging
+import os
+
+import Metashape
 from common.config import inject
 from common.helpers import notify_task_completion
 
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
     read_params=[
         "project_path",
         "project_name",
-        "chunk_label"
+        "chunk_label",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )
@@ -60,14 +64,14 @@ def enable_geo_tags(**context):
         logger.info("[INFO] Metashape project saved after enabling GPS tags.")
 
         payload = {
-                "enabled_camera_count": updated_count
-            }
-        
+            "enabled_camera_count": updated_count
+        }
+
         logger.info(f"[INFO] Enabled GPS tags for {updated_count} cameras.")
         logger.info(f"[INFO] Payload: {json.dumps(payload)}")
 
         try:
-            
+
             notify_task_completion(
                 workflow_id=workflow_id,
                 task_name=task_name,

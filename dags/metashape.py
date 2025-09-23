@@ -1,5 +1,6 @@
 import Metashape
 
+
 # def deactivate(license_string: str):
 #     """
 #     Deactivate the Metashape license.
@@ -32,7 +33,8 @@ def get_document(path: str):
     doc.open(path)
     return doc
 
-def create_project(psx_file_name:str):
+
+def create_project(psx_file_name: str):
     """
     Create a new Metashape project.
     :param psx_file_name: The name of the Metashape project file to create.
@@ -76,7 +78,8 @@ def create_chunk(doc: Metashape.Document, label: str):
     doc.save()  # Save the project after creating the chunk
     print(f"Chunk '{label}' created successfully.")
 
-def get_chunk(doc:Metashape.Document, label: str):
+
+def get_chunk(doc: Metashape.Document, label: str):
     """
     Get a chunk by its label.
     :param label: The label of the chunk to retrieve.

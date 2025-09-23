@@ -1,11 +1,12 @@
-import Metashape
-import os
 import logging
-import json
-from common.config import inject, get_variable
+import os
+
+import Metashape
+from common.config import inject
 from common.helpers import notify_task_completion
 
 logger = logging.getLogger(__name__)
+
 
 @inject(
     workflow_conf_key="workflowId",
@@ -17,7 +18,9 @@ logger = logging.getLogger(__name__)
         "nas_root_path",
         "nas_folder_path",
         "chunk_label",
-        "camera_group_labels"
+        "camera_group_labels",
+        "metashape_server_ip",
+        "nas_root_path"
     ],
     method="GET"
 )
@@ -70,7 +73,6 @@ def disable_images(**context):
                 camera.enabled = False
                 disabled_count += 1
                 group_disable_map.setdefault(group_label, []).append(filename)
-
 
         disabled_camera_group_labels = []
         for group in chunk.camera_groups:

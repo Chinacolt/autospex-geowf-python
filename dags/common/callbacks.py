@@ -1,9 +1,8 @@
-from airflow.utils.state import State
-import logging
 import json
+import logging
 
-from common.helpers import notify_task_completion, notify_task_failure
 from common.config import save_project_on_failure
+from common.helpers import notify_task_completion, notify_task_failure
 
 
 def task_success_callback(context):
@@ -25,6 +24,7 @@ def task_success_callback(context):
     except Exception as e:
         logging.error(f"[Callback Error] Success callback failed: {str(e)}")
 
+
 def task_failure_callback(context):
     logging.info("Task failure callback triggered")
     try:
@@ -34,10 +34,8 @@ def task_failure_callback(context):
         workflow_id = dag_run.conf.get("workflowId") if dag_run else "unknown"
         logging.info(f"[{task_instance.task_id}] Task failure callback triggered for workflowId: {workflow_id}")
 
-
         payload = task_instance.xcom_pull(task_ids=task_instance.task_id, key=task_name)
 
-        
         logging.info(f"[{task_instance.task_id}] XCom payload: {json.dumps(payload, indent=2)}")
 
         if payload:
@@ -45,15 +43,13 @@ def task_failure_callback(context):
             project_path = payload["projectInfo"]["project_path"]
             project_name = payload["projectInfo"]["project_name"]
 
-        
         logging.info(f"[{task_instance.task_id}] Project path: {project_path}")
         logging.info(f"[{task_instance.task_id}] Project name: {project_name}")
-    
 
         save_project_on_failure(
             project_path,
             project_name
-        )    
+        )
 
         notify_task_failure(
             workflow_id=workflow_id,

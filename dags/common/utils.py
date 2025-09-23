@@ -8,9 +8,11 @@ ACCURACY_LEVELS = {
     "lowest": 8
 }
 
+
 def get_accuracy_value(accuracy_str):
     key = accuracy_str.lower().strip()
     return ACCURACY_LEVELS.get(key, None)
+
 
 class TaskName(Enum):
     COPY_DATA_TO_NAS = "copy_data_to_nas"
