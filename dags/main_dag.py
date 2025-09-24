@@ -4,6 +4,7 @@ from airflow import DAG
 from airflow.decorators import task
 
 from common.callbacks import task_failure_callback
+from common.config import get_variable
 from common.helpers import notify_task_completion
 from lib.metashape_manager import manager as metashape_manager
 from lib.metashape_tasks.build_3d_mesh_high_level import build_3d_mesh_high_level
@@ -57,9 +58,9 @@ with DAG(
         if workflow_id is None:
             raise ValueError("workflowId is required!")
 
-        server_instance_type = "c5.large"
-        worker_instance_type = "g6.xlarge"
-        worker_count = 1
+        server_instance_type = get_variable("METASHAPE__SERVER_INSTANCE_TYPE")
+        worker_instance_type = get_variable("METASHAPE__WORKER_INSTANCE_TYPE")
+        worker_count = int(get_variable("METASHAPE__WORKER_COUNT"))
 
         server_fqdn, worker_data_path = metashape_manager.create_cluster(uniq_id=workflow_id,
                                                                          server_instance_type=server_instance_type,
